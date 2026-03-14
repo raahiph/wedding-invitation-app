@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->string('key')->primary();
-            $table->text('value')->default('');
+            $table->text('value')->nullable();
         });
     }
 
