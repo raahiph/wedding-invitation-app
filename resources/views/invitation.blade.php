@@ -16,6 +16,7 @@
 <link rel="icon" type="image/png" sizes="180x180" href="/assets/img/180x180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/192x192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/assets/img/512x512.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -360,7 +361,7 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
 /* horizontal connecting line */
 .tl::before {
   content:''; position:absolute;
-  top:calc(44px + 8px + 5px); /* tl-time min-height(44px) + margin-bottom(8px) + dot-half(5px) */
+  top:calc(44px + 8px + 18px); /* tl-time min-height(44px) + margin-bottom(8px) + dot-half(18px) */
   left:0; right:0; height:2px;
   background:var(--border); z-index:0;
 }
@@ -382,9 +383,12 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
   margin-bottom:8px; line-height:1.4; text-align:center;
 }
 .tl-dot {
-  width:10px; height:10px; border-radius:50%;
+  width:36px; height:36px; border-radius:50%;
   background:var(--navy); flex-shrink:0;
   margin-bottom:12px;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--white); font-size:14px;
+  transition:background 0.25s, box-shadow 0.25s, color 0.25s;
 }
 .tl-label {
   font-size:10px; font-weight:300; letter-spacing:0.08em;
@@ -392,13 +396,12 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
   transition:color 0.25s;
 }
 .tl-item:hover .tl-dot {
-  background:var(--powder-blue);
+  background:var(--white);
   box-shadow:0 0 0 3px var(--navy);
-  transition:background 0.25s, box-shadow 0.25s;
+  color:var(--navy);
 }
 .tl-item:hover .tl-time { color:var(--navy); opacity:1; }
 .tl-item:hover .tl-label { color:var(--navy); }
-.tl-dot { transition:background 0.25s, box-shadow 0.25s; }
 .tl-time { transition:opacity 0.25s, color 0.25s; }
 /* vertical alternating (mobile) */
 @media(max-width:760px) {
@@ -410,7 +413,7 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
   }
   .tl-item {
     display:grid;
-    grid-template-columns:1fr 24px 1fr;
+    grid-template-columns:1fr 40px 1fr;
     column-gap:10px;
     padding-bottom:36px; position:relative;
   }
@@ -597,32 +600,32 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
     <div class="tl">
       <div class="tl-item">
         <span class="tl-time">4:45 pm</span>
-        <span class="tl-dot"></span>
+        <span class="tl-dot"><i class="fa-solid fa-person-walking-arrow-right"></i></span>
         <span class="tl-label">Arrival for Ceremony</span>
       </div>
       <div class="tl-item">
         <span class="tl-time">5:00 pm</span>
-        <span class="tl-dot"></span>
+        <span class="tl-dot"><i class="fa-solid fa-ring"></i></span>
         <span class="tl-label">Wedding Ceremony</span>
       </div>
       <div class="tl-item">
         <span class="tl-time">5:50 pm</span>
-        <span class="tl-dot"></span>
+        <span class="tl-dot"><i class="fa-solid fa-camera"></i></span>
         <span class="tl-label">Photo Session</span>
       </div>
       <div class="tl-item">
         <span class="tl-time">6:00 pm</span>
-        <span class="tl-dot"></span>
+        <span class="tl-dot"><i class="fa-solid fa-champagne-glasses"></i></span>
         <span class="tl-label">Wedding Reception</span>
       </div>
       <div class="tl-item">
         <span class="tl-time">6:00 pm</span>
-        <span class="tl-dot"></span>
+        <span class="tl-dot"><i class="fa-solid fa-music"></i></span>
         <span class="tl-label">Live Music</span>
       </div>
       <div class="tl-item">
         <span class="tl-time">7:30 pm</span>
-        <span class="tl-dot"></span>
+        <span class="tl-dot"><i class="fa-solid fa-cake-candles"></i></span>
         <span class="tl-label">Cake Cutting</span>
       </div>
     </div>

@@ -316,7 +316,7 @@ tbody tr:hover td { background:#F7F9FB; }
       <button class="hamburger" id="menu-btn" aria-label="Menu">
         <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <span class="topbar-brand">{{ $wedding['groom'] }} & {{ $wedding['bride'] }}</span>
+      <span class="topbar-brand">{{ $wedding['groom'] }} &amp;&nbsp; {{ $wedding['bride'] }}</span>
     </div>
 
     <div class="page-header">
