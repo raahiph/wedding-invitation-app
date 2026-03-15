@@ -379,6 +379,9 @@ body::before {
   .cd-units { gap:12px; }
   .cd-sep { display:none; }
   .rsvp-inner { padding:52px 28px; }
+  .radio-group { align-items:stretch; }
+  .radio-option { display:flex; }
+  .radio-option label { flex:1; }
 }
 </style>
 </head>
