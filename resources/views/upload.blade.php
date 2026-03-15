@@ -174,7 +174,7 @@ input[type=file] { display:none; }
 <div class="up-card">
   <p class="up-ornament">✦ ✦ ✦</p>
   <h1 class="up-names">{{ $wedding['groom'] }} &amp;&nbsp; {{ $wedding['bride'] }}</h1>
-  <p class="up-sub">{{ $wedding['date'] }} &nbsp;·&nbsp; {{ $wedding['city'] }}</p>
+  <p class="up-sub">{{ $wedding['date'] }}</p>
   <div class="up-rule"></div>
   <p class="up-label">Share your photos from our day</p>
 
