@@ -85,6 +85,9 @@ class AdminController extends Controller
         $side   = in_array($request->input('side'), ['groom', 'bride', 'other']) ? $request->input('side') : 'other';
 
         if (strlen($mobile) < 7) {
+            if ($request->wantsJson()) {
+                return response()->json(['ok' => false, 'message' => 'Invalid mobile number.'], 422);
+            }
             return back()->withErrors(['mobile' => 'Invalid mobile number.']);
         }
 
@@ -92,12 +95,35 @@ class AdminController extends Controller
 
         $msg = $created->wasRecentlyCreated ? 'Guest added successfully.' : 'That mobile number is already on the list.';
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'ok'      => true,
+                'created' => $created->wasRecentlyCreated,
+                'message' => $msg,
+                'guest'   => [
+                    'id'               => $created->id,
+                    'mobile'           => $created->mobile,
+                    'name'             => $created->name ?? '',
+                    'notes'            => $created->notes ?? '',
+                    'side'             => $created->side,
+                    'attends_ceremony' => (bool) $created->attends_ceremony,
+                    'session'          => $created->session,
+                    'ceremony_url'     => route('admin.guests.ceremony', $created),
+                    'update_url'       => route('admin.guests.update', $created),
+                    'destroy_url'      => route('admin.guests.destroy', $created),
+                ],
+            ]);
+        }
+
         return back()->with('admin_msg', $msg);
     }
 
     public function destroy(Guest $guest)
     {
         $guest->delete();
+        if (request()->wantsJson()) {
+            return response()->json(['ok' => true]);
+        }
         return back()->with('admin_msg', 'Guest removed.');
     }
 
@@ -112,6 +138,15 @@ class AdminController extends Controller
         $fullName        = substr(trim($request->input('full_name', '')), 0, 120);
         $sessionRaw      = $request->input('session', '');
         $session         = in_array($sessionRaw, ['1', '2']) ? (int) $sessionRaw : null;
+
+        $newMobile = Guest::normaliseMobile($request->input('mobile', $guest->mobile));
+        if (strlen($newMobile) >= 7 && $newMobile !== $guest->mobile) {
+            $exists = Guest::where('mobile', $newMobile)->where('id', '!=', $guest->id)->exists();
+            if ($exists) {
+                return response()->json(['ok' => false, 'message' => 'That mobile number is already assigned to another guest.']);
+            }
+            $guest->mobile = $newMobile;
+        }
 
         $guest->update(['name' => $name, 'notes' => $notes, 'side' => $side, 'attends_ceremony' => $attendsCeremony, 'session' => $session]);
 
@@ -128,13 +163,28 @@ class AdminController extends Controller
             );
         }
 
-        return response()->json(['ok' => true]);
+        return response()->json(['ok' => true, 'mobile' => $guest->mobile]);
     }
 
     public function toggleCeremony(Guest $guest)
     {
         $guest->update(['attends_ceremony' => !$guest->attends_ceremony]);
+        if (request()->wantsJson()) {
+            return response()->json(['ok' => true, 'attends_ceremony' => (bool) $guest->attends_ceremony]);
+        }
         return back();
+    }
+
+    public function guestList(string $side)
+    {
+        $guests = Guest::with('rsvp')->where('side', $side)->latest()->get();
+
+        $totalGuests    = $guests->count();
+        $totalAttending = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
+        $totalHeads     = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)
+                                 ->sum(fn($g) => 1 + $g->rsvp->plus_ones);
+
+        return view('admin.guests', compact('guests', 'side', 'totalGuests', 'totalAttending', 'totalHeads'));
     }
 
     public function stats()

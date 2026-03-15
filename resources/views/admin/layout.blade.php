@@ -281,6 +281,18 @@ tbody tr:hover td { background:#F7F9FB; }
         Dashboard
       </a>
 
+      <a href="{{ route('admin.guests.groom') }}"
+         class="nav-link {{ request()->routeIs('admin.guests.groom') ? 'active' : '' }}" style="padding-left:32px">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7"/><path d="M17 14l2 2 4-4" stroke-width="1.8"/></svg>
+        {{ $wedding['groom'] }}'s Guests
+      </a>
+
+      <a href="{{ route('admin.guests.bride') }}"
+         class="nav-link {{ request()->routeIs('admin.guests.bride') ? 'active' : '' }}" style="padding-left:32px">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7"/><path d="M17 14l2 2 4-4" stroke-width="1.8"/></svg>
+        {{ $wedding['bride'] }}'s Guests
+      </a>
+
       <a href="{{ route('admin.gallery') }}"
          class="nav-link {{ request()->routeIs('admin.gallery') ? 'active' : '' }}">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>

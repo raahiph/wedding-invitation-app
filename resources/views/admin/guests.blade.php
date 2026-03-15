@@ -1,34 +1,22 @@
 @extends('admin.layout')
 
-@section('title', 'Dashboard')
-@section('page-title', 'Dashboard')
-@section('page-subtitle', $wedding['groom'] . ' & ' . $wedding['bride'] . ' · Guest Management')
+@php
+  $sideName  = $side === 'groom' ? $wedding['groom'] : $wedding['bride'];
+  $sideClass = $side === 'groom' ? 'stat-groom' : 'stat-bride';
+@endphp
+
+@section('title', $sideName . "'s Guests")
+@section('page-title', $sideName . "'s Guests")
+@section('page-subtitle', 'Manage guests on ' . $sideName . "'s side")
 
 @section('content')
 
-{{-- Countdown Mode Toggle --}}
-<div class="mode-card {{ $rsvpMode ? 'active' : '' }}">
-  <div>
-    <p class="mode-label">RSVP Mode</p>
-    <p class="mode-desc">{{ $rsvpMode ? 'ON — verified guests see the save-the-date & RSVP page' : 'OFF — verified guests see the full invitation' }}</p>
-  </div>
-  <form method="POST" action="{{ route('admin.countdown.toggle') }}" class="toggle-form">
-    @csrf
-    <label class="toggle-switch" title="Toggle RSVP mode">
-      <input type="checkbox" {{ $rsvpMode ? 'checked' : '' }} onchange="this.form.submit()">
-      <span class="toggle-slider"></span>
-    </label>
-  </form>
-</div>
-
 {{-- Stats --}}
 <div class="stats">
-  <div class="stat"><strong id="stat-total">{{ $totalGuests }}</strong><span>Invited</span></div>
+  <div class="stat {{ $sideClass }}"><strong id="stat-total">{{ $totalGuests }}</strong><span>Invited</span></div>
   <div class="stat"><strong id="stat-attending">{{ $totalAttending }}</strong><span>Attending</span></div>
   <div class="stat"><strong id="stat-heads">{{ $totalHeads }}</strong><span>Total Heads</span></div>
   <div class="stat"><strong id="stat-pending">{{ $totalGuests - $guests->filter(fn($g) => $g->rsvp)->count() }}</strong><span>Pending RSVP</span></div>
-  <div class="stat stat-groom"><strong id="stat-groom">{{ $groomCount }}</strong><span>{{ $wedding['groom'] }}'s Side</span></div>
-  <div class="stat stat-bride"><strong id="stat-bride">{{ $brideCount }}</strong><span>{{ $wedding['bride'] }}'s Side</span></div>
 </div>
 
 {{-- Add Guest --}}
@@ -36,16 +24,11 @@
   <p class="card-title">Add Guest</p>
   <form id="add-guest-form" method="POST" action="{{ route('admin.guests.store') }}">
     @csrf
+    <input type="hidden" name="side" value="{{ $side }}">
     <div class="form-row">
       <input class="form-input" type="tel"  name="mobile" placeholder="Mobile number (e.g. 9123456)" required>
       <input class="form-input" type="text" name="name"   placeholder="Name (optional)">
       <input class="form-input" type="text" name="notes"  placeholder="Notes (optional)">
-      <select class="form-input" name="side">
-        <option value="other">Side</option>
-        <option value="groom">{{ $wedding['groom'] }}'s side</option>
-        <option value="bride">{{ $wedding['bride'] }}'s side</option>
-        <option value="other">Other</option>
-      </select>
       <button type="submit" class="form-btn">Add</button>
     </div>
   </form>
@@ -66,12 +49,6 @@
     <option value="no">Not attending</option>
     <option value="pending">Pending RSVP</option>
   </select>
-  <select class="form-input tbl-select" id="guest-side">
-    <option value="">All sides</option>
-    <option value="groom">{{ $wedding['groom'] }}'s side</option>
-    <option value="bride">{{ $wedding['bride'] }}'s side</option>
-    <option value="other">Other</option>
-  </select>
   <span class="tbl-count" id="guest-count"></span>
 </div>
 
@@ -82,7 +59,6 @@
         <th>#</th>
         <th>Mobile</th>
         <th>Name</th>
-        <th>Side</th>
         <th>RSVP Name</th>
         <th>Attending</th>
         <th>+Guests</th>
@@ -96,14 +72,11 @@
       @forelse($guests as $i => $guest)
       @php
         $attStatus = !$guest->rsvp ? 'pending' : ($guest->rsvp->attending ? 'yes' : 'no');
-        $sideLabel = $guest->side === 'groom' ? $wedding['groom'] : ($guest->side === 'bride' ? $wedding['bride'] : 'Other');
-        $sideCls   = 'side-' . $guest->side;
       @endphp
-      <tr data-status="{{ $attStatus }}" data-side="{{ $guest->side }}">
+      <tr data-status="{{ $attStatus }}">
         <td class="td-dim">{{ $i + 1 }}</td>
         <td class="td-hi">{{ $guest->mobile }}</td>
         <td class="guest-name">{{ $guest->name ?: '—' }}</td>
-        <td><span class="badge {{ $sideCls }} guest-side">{{ $sideLabel }}</span></td>
         <td>{{ $guest->rsvp->full_name ?? '—' }}</td>
         <td>
           <span class="badge attending-badge badge-{{ $attStatus }}">
@@ -146,8 +119,8 @@
         </td>
       </tr>
       @empty
-      <tr id="empty-row">
-        <td colspan="10" style="text-align:center;color:#8FA3B8;padding:32px;">No guests yet.</td>
+      <tr>
+        <td colspan="9" style="text-align:center;color:#8FA3B8;padding:32px;">No guests on {{ $sideName }}'s side yet.</td>
       </tr>
       @endforelse
     </tbody>
@@ -246,7 +219,7 @@
 (function () {
   const csrfToken  = document.querySelector('meta[name="csrf-token"]').content;
   const AJAX_HDRS  = { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
-  const sideLabels = { groom: '{{ $wedding['groom'] }}', bride: '{{ $wedding['bride'] }}', other: 'Other' };
+  const currentSide = '{{ $side }}';
 
   // ── Helpers ───────────────────────────────────────
   function esc(s) {
@@ -273,23 +246,35 @@
     });
   }
 
+  function refreshStats() {
+    const rows = [...tbody.querySelectorAll('tr[data-status]')];
+    const total = rows.length;
+    const attending = rows.filter(r => r.dataset.status === 'yes').length;
+    const pending   = rows.filter(r => r.dataset.status === 'pending').length;
+    let heads = 0;
+    rows.filter(r => r.dataset.status === 'yes').forEach(r => {
+      const td = r.querySelector('.plus-ones');
+      heads += 1 + (parseInt(td?.textContent) || 0);
+    });
+    document.getElementById('stat-total').textContent     = total;
+    document.getElementById('stat-attending').textContent = attending;
+    document.getElementById('stat-heads').textContent     = heads;
+    document.getElementById('stat-pending').textContent   = pending;
+  }
+
   // ── Table filter ──────────────────────────────────
   const search    = document.getElementById('guest-search');
   const statusSel = document.getElementById('guest-status');
-  const sideSel   = document.getElementById('guest-side');
   const tbody     = document.getElementById('guest-tbody');
   const counter   = document.getElementById('guest-count');
 
   function filter() {
     const q  = search.value.trim().toLowerCase();
     const s  = statusSel.value;
-    const sd = sideSel.value;
     const rows = tbody.querySelectorAll('tr[data-status]');
     let visible = 0;
     rows.forEach(row => {
-      const show = (!q  || row.textContent.toLowerCase().includes(q))
-                && (!s  || row.dataset.status === s)
-                && (!sd || row.dataset.side   === sd);
+      const show = (!q || row.textContent.toLowerCase().includes(q)) && (!s || row.dataset.status === s);
       row.style.display = show ? '' : 'none';
       if (show) visible++;
     });
@@ -299,33 +284,14 @@
 
   search.addEventListener('input', filter);
   statusSel.addEventListener('change', filter);
-  sideSel.addEventListener('change', filter);
   filter();
-
-  // ── Live stats ────────────────────────────────────
-  const statsUrl = '{{ route("admin.stats") }}';
-  function refreshStats() {
-    fetch(statsUrl, { headers: AJAX_HDRS })
-      .then(r => r.json())
-      .then(d => {
-        document.getElementById('stat-total').textContent     = d.total;
-        document.getElementById('stat-attending').textContent = d.attending;
-        document.getElementById('stat-heads').textContent     = d.heads;
-        document.getElementById('stat-pending').textContent   = d.pending;
-        document.getElementById('stat-groom').textContent     = d.groom;
-        document.getElementById('stat-bride').textContent     = d.bride;
-      }).catch(() => {});
-  }
-  setInterval(refreshStats, 15000);
 
   // ── Build new guest row ───────────────────────────
   function buildRow(g) {
-    const sLabel = sideLabels[g.side] || 'Other';
     return `<tr data-status="pending" data-side="${esc(g.side)}">
       <td class="td-dim"></td>
       <td class="td-hi">${esc(g.mobile)}</td>
       <td class="guest-name">${esc(g.name || '—')}</td>
-      <td><span class="badge side-${esc(g.side)} guest-side">${esc(sLabel)}</span></td>
       <td>—</td>
       <td><span class="badge attending-badge badge-pending">Pending</span></td>
       <td class="plus-ones">—</td>
@@ -355,26 +321,23 @@
     e.preventDefault();
     const btn = this.querySelector('.form-btn');
     btn.disabled = true;
-    fetch(this.action, {
-      method: 'POST',
-      headers: AJAX_HDRS,
-      body: new URLSearchParams(new FormData(this))
-    })
-    .then(r => r.json())
-    .then(d => {
-      if (!d.ok) { showFlash(d.message, true); return; }
-      if (!d.created) { showFlash(d.message, true); return; }
-      tbody.insertAdjacentHTML('afterbegin', buildRow(d.guest));
-      // Wire edit button for the new row
-      tbody.querySelector('tr:first-child .edit-btn').addEventListener('click', function() { openModal(this); });
-      renumber();
-      refreshStats();
-      filter();
-      this.reset();
-      showFlash('Guest added.');
-    })
-    .catch(() => showFlash('Request failed.', true))
-    .finally(() => { btn.disabled = false; });
+    fetch(this.action, { method: 'POST', headers: AJAX_HDRS, body: new URLSearchParams(new FormData(this)) })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok || !d.created) { showFlash(d.message, true); return; }
+        // Only add to table if the guest is on the current side
+        if (d.guest.side === currentSide) {
+          tbody.insertAdjacentHTML('afterbegin', buildRow(d.guest));
+          tbody.querySelector('tr:first-child .edit-btn').addEventListener('click', function() { openModal(this); });
+          renumber();
+        }
+        refreshStats();
+        filter();
+        this.reset();
+        showFlash('Guest added.');
+      })
+      .catch(() => showFlash('Request failed.', true))
+      .finally(() => { btn.disabled = false; });
   });
 
   // ── Ceremony toggle & Delete (AJAX, delegated) ────
@@ -394,7 +357,7 @@
           const row = btn.closest('tr');
           const editBtn = row.querySelector('.edit-btn');
           if (editBtn) { editBtn.dataset.ceremony = on ? '1' : '0'; if (on) editBtn.dataset.session = ''; }
-          const sessionTd = row.querySelectorAll('td')[8];
+          const sessionTd = row.querySelectorAll('td')[7];
           if (sessionTd && on) sessionTd.innerHTML = '<span class="td-dim">—</span>';
         });
       return;
@@ -481,20 +444,15 @@
       if (!data.ok) { modalMsg.textContent = data.message || 'Something went wrong.'; return; }
       const statusVal = attending === 'yes' ? 'yes' : attending === 'no' ? 'no' : 'pending';
       activeRow.dataset.status = statusVal;
-      activeRow.dataset.side   = side;
       activeRow.querySelector('.td-hi').textContent      = data.mobile;
       activeRow.querySelector('.guest-name').textContent = name || '—';
-
-      const sideBadge = activeRow.querySelector('.guest-side');
-      sideBadge.className = 'badge side-' + side + ' guest-side';
-      sideBadge.textContent = sideLabels[side] || 'Other';
 
       const badge = activeRow.querySelector('.attending-badge');
       badge.className = 'badge attending-badge badge-' + statusVal;
       badge.textContent = statusVal === 'yes' ? 'Yes' : statusVal === 'no' ? 'No' : 'Pending';
 
       activeRow.querySelector('.plus-ones').textContent = attending ? plusOnes : '—';
-      activeRow.querySelectorAll('td')[4].textContent = rsvpName || '—';
+      activeRow.querySelectorAll('td')[3].textContent = rsvpName || '—';
 
       const ceremonyBtn = activeRow.querySelector('.ceremony-btn');
       if (ceremonyBtn) {
@@ -503,11 +461,10 @@
         ceremonyBtn.textContent = on ? 'Yes' : 'No';
       }
 
-      const editBtn = activeRow.querySelector('.edit-btn');
-      Object.assign(editBtn.dataset, { mobile: data.mobile, name, notes, side, attending, plus: plusOnes, rsvpName, ceremony, session });
+      Object.assign(activeRow.querySelector('.edit-btn').dataset, { mobile: data.mobile, name, notes, side, attending, plus: plusOnes, rsvpName, ceremony, session });
       document.getElementById('modal-mobile').textContent = data.mobile;
 
-      const sessionTd = activeRow.querySelectorAll('td')[8];
+      const sessionTd = activeRow.querySelectorAll('td')[7];
       if (sessionTd) {
         sessionTd.innerHTML = (ceremony !== '1' && session)
           ? `<span class="badge" style="background:#EAF1FB;color:#2A4E96;border-color:#C3D4F5">S${session}</span>`
