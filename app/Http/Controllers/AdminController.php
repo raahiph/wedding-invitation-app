@@ -60,19 +60,19 @@ class AdminController extends Controller
         return view('admin.index', compact('guests', 'totalGuests', 'totalAttending', 'totalHeads', 'groomCount', 'brideCount', 'rsvpMode'));
     }
 
-    public function toggleCountdown()
+    public function toggleCountdown(Request $request)
     {
         $flag = storage_path('app/rsvp_mode');
 
         if (file_exists($flag)) {
             unlink($flag);
-            $msg = 'RSVP mode disabled. Full invitation is now active.';
+            $active = false;
         } else {
             touch($flag);
-            $msg = 'RSVP mode enabled. Verified guests will see the RSVP page.';
+            $active = true;
         }
 
-        return redirect()->route('admin.index')->with('admin_msg', $msg);
+        return response()->json(['ok' => true, 'active' => $active]);
     }
 
     public function store(Request $request)

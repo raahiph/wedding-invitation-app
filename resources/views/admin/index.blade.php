@@ -7,18 +7,15 @@
 @section('content')
 
 {{-- Countdown Mode Toggle --}}
-<div class="mode-card {{ $rsvpMode ? 'active' : '' }}">
+<div class="mode-card {{ $rsvpMode ? 'active' : '' }}" id="rsvp-mode-card">
   <div>
     <p class="mode-label">RSVP Mode</p>
-    <p class="mode-desc">{{ $rsvpMode ? 'ON — verified guests see the save-the-date & RSVP page' : 'OFF — verified guests see the full invitation' }}</p>
+    <p class="mode-desc" id="rsvp-mode-desc">{{ $rsvpMode ? 'ON — verified guests see the save-the-date & RSVP page' : 'OFF — verified guests see the full invitation' }}</p>
   </div>
-  <form method="POST" action="{{ route('admin.countdown.toggle') }}" class="toggle-form">
-    @csrf
-    <label class="toggle-switch" title="Toggle RSVP mode">
-      <input type="checkbox" {{ $rsvpMode ? 'checked' : '' }} onchange="this.form.submit()">
-      <span class="toggle-slider"></span>
-    </label>
-  </form>
+  <label class="toggle-switch" title="Toggle RSVP mode">
+    <input type="checkbox" id="rsvp-mode-toggle" {{ $rsvpMode ? 'checked' : '' }}>
+    <span class="toggle-slider"></span>
+  </label>
 </div>
 
 {{-- Stats --}}
@@ -94,6 +91,32 @@ window.GUEST_CFG = {
 };
 </script>
 <script src="/assets/js/admin-guests.js"></script>
+<script>
+(function () {
+  const toggle   = document.getElementById('rsvp-mode-toggle');
+  const card     = document.getElementById('rsvp-mode-card');
+  const desc     = document.getElementById('rsvp-mode-desc');
+  const csrf     = document.querySelector('meta[name="csrf-token"]').content;
+  const onDesc   = 'ON — verified guests see the save-the-date & RSVP page';
+  const offDesc  = 'OFF — verified guests see the full invitation';
+
+  toggle.addEventListener('change', function () {
+    toggle.disabled = true;
+    fetch('{{ route('admin.countdown.toggle') }}', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf },
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (!d.ok) { toggle.checked = !toggle.checked; return; }
+      card.classList.toggle('active', d.active);
+      desc.textContent = d.active ? onDesc : offDesc;
+    })
+    .catch(() => { toggle.checked = !toggle.checked; })
+    .finally(() => { toggle.disabled = false; });
+  });
+})();
+</script>
 @endpush
 
 @endsection
