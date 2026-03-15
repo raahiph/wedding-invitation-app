@@ -92,7 +92,7 @@ body::before {
 }
 @media (max-width: 768px) {
   .hero {
-  position:relative; height:90vh;
+  position:relative; height:100vh;
   display:flex; align-items:center; justify-content:center; overflow:hidden;
 }
 }
@@ -161,8 +161,8 @@ body::before {
   display:flex; flex-direction:column; align-items:center;
   animation:fadeSlideUp 1s ease 0.75s both;
   text-shadow:0 2px 12px rgba(0,0,0,0.55), 0 8px 32px rgba(0,0,0,0.35);
-  margin-top: 4rem;
-  margin-bottom: 2rem;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 }
 .hero-title .name-m { display:block; color:#ffffff; }
 .hero-title .name-f { display:block; color:#ffffff; }
@@ -409,7 +409,7 @@ body::before {
     <div class="hero-sep">
       <span class="sep-date">{{ $wedding['date_short'] }}</span>
     </div>
-    <p class="hero-eyebrow">Formal invitation to follow.</p>
+    <p class="hero-eyebrow">Formal invitation to follow</p>
   </div>
 
   <div class="hero-countdown">

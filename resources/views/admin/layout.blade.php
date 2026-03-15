@@ -128,7 +128,7 @@ body { font-family:'Montserrat',system-ui,sans-serif; background:#F0F2F5; color:
 .mode-desc { font-size:12px; color:#6B7E96; font-weight:400; }
 
 .toggle-form { flex-shrink:0; }
-.toggle-switch { position:relative; display:inline-block; width:46px; height:24px; cursor:pointer; }
+.toggle-switch { position:relative; display:inline-block; width:46px; height:24px; cursor:pointer; flex-shrink:0; }
 .toggle-switch input { opacity:0; width:0; height:0; position:absolute; }
 .toggle-slider { position:absolute; inset:0; background:#CBD5E0; border-radius:24px; transition:0.25s; }
 .toggle-slider::before { content:''; position:absolute; width:16px; height:16px; left:4px; top:4px; background:#FFFFFF; border-radius:50%; transition:0.25s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
@@ -297,6 +297,15 @@ tbody tr:hover td { background:#F7F9FB; }
 }
 .csv-sample-link:hover { color:#1A2332; border-color:#6EA8D0; }
 
+/* ─── Select arrow fix ───────────────────────────── */
+select.form-input {
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7E96' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 10px center;
+  padding-right:30px;
+}
+
 /* ─── Responsive ──────────────────────────────────── */
 @media(max-width:768px) {
   .sidebar { transform:translateX(-100%); }
@@ -307,6 +316,12 @@ tbody tr:hover td { background:#F7F9FB; }
   .page-header { padding:22px 20px 18px; }
   .page-body { padding:20px 20px 40px; }
   .s-grid2 { grid-template-columns:1fr; }
+
+  /* Stats: 2-per-row, equal width */
+  .stat { flex:1 1 calc(50% - 6px); min-width:0; padding:14px 10px; }
+  .stat strong { font-size:22px; }
+  .stat span { font-size:9px; }
+
 }
 </style>
 </head>
