@@ -7,10 +7,10 @@ return [
     'date'         => 'May 15, 2026',
     'date_short'   => '15 | 05 | 26',
     'date_day'     => 'Friday',
-    'venue'        => 'Lonuziyaarai Park',
+    'venue'        => 'Medhu Bageecha, Lonuziyaarai Park',
     'city'         => "Male'",
     'country'      => 'Maldives',
-    'venue_map_url' => '',
+    'venue_map_url' => 'https://maps.app.goo.gl/E1cDqkyRUWAF5iM26',
     'dress_code'   => 'Smart Formal',
     'dress_note'   => 'Modest & elegant attire',
     'rsvp_by'      => 'April 30, 2026',
@@ -18,9 +18,9 @@ return [
 
     // Raw picker values — derived/stored by admin settings form
     'event_date'          => '2026-05-15',
-    'reception_time_raw'  => '17:00',
-    'reception_time'      => '5:00 pm',
-    'reception_time_words' => "at five o'clock in the evening",
+    'reception_time_raw'  => '17:30',
+    'reception_time'      => '5:30 pm',
+    'reception_time_words' => "at five-thirty in the evening",
     'timezone'            => '+05:00',
     'rsvp_by_raw'         => '2026-04-30',
 
