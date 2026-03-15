@@ -72,7 +72,7 @@ class AdminController extends Controller
             $msg = 'RSVP mode enabled. Verified guests will see the RSVP page.';
         }
 
-        return back()->with('admin_msg', $msg);
+        return redirect()->route('admin.index')->with('admin_msg', $msg);
     }
 
     public function store(Request $request)
