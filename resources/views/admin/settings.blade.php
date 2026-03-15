@@ -182,14 +182,36 @@
   {{-- Dress Code --}}
   <div class="card">
     <p class="card-title">Dress Code</p>
-    <div class="s-grid2">
+    <p class="hint" style="margin-bottom:20px;">Set a general dress code, or fill in Ladies &amp; Gents separately. If both gender-specific fields are set, the general field is ignored on the invitation.</p>
+    <div class="s-grid2" style="margin-bottom:20px;">
       <div class="s-field">
-        <label>Dress Code</label>
+        <label>General — Dress Code</label>
         <input class="form-input" style="width:100%" type="text" name="dress_code" value="{{ $settings['dress_code'] }}">
       </div>
       <div class="s-field">
-        <label>Dress Note</label>
+        <label>General — Note</label>
         <input class="form-input" style="width:100%" type="text" name="dress_note" value="{{ $settings['dress_note'] }}">
+      </div>
+    </div>
+    <hr style="border:none;border-top:1px solid #E2E8F0;margin-bottom:20px;">
+    <div class="s-grid2" style="margin-bottom:12px;">
+      <div class="s-field">
+        <label>Ladies — Dress Code</label>
+        <input class="form-input" style="width:100%" type="text" name="dress_code_ladies" value="{{ $settings['dress_code_ladies'] ?? '' }}" placeholder="e.g. Formal gown">
+      </div>
+      <div class="s-field">
+        <label>Ladies — Note</label>
+        <input class="form-input" style="width:100%" type="text" name="dress_note_ladies" value="{{ $settings['dress_note_ladies'] ?? '' }}" placeholder="e.g. Floor-length preferred">
+      </div>
+    </div>
+    <div class="s-grid2">
+      <div class="s-field">
+        <label>Gents — Dress Code</label>
+        <input class="form-input" style="width:100%" type="text" name="dress_code_gents" value="{{ $settings['dress_code_gents'] ?? '' }}" placeholder="e.g. Suit & tie">
+      </div>
+      <div class="s-field">
+        <label>Gents — Note</label>
+        <input class="form-input" style="width:100%" type="text" name="dress_note_gents" value="{{ $settings['dress_note_gents'] ?? '' }}" placeholder="e.g. Dark colours preferred">
       </div>
     </div>
   </div>

@@ -187,7 +187,8 @@ class AdminController extends Controller
     {
         // Store manual / raw fields as-is
         $manualKeys = [
-            'groom', 'bride', 'venue', 'city', 'country', 'venue_map_url', 'dress_code', 'dress_note',
+            'groom', 'bride', 'venue', 'city', 'country', 'venue_map_url',
+            'dress_code', 'dress_note', 'dress_code_ladies', 'dress_note_ladies', 'dress_code_gents', 'dress_note_gents',
             'reception_time_words',
             'wedding_time_words', 'session1_time_words', 'session2_time_words',
             'event_date', 'reception_time_raw', 'timezone', 'rsvp_by_raw',

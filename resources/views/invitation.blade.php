@@ -270,6 +270,10 @@ body::before {
 .dcard-lbl { font-size:8px; letter-spacing:0.5em; text-transform:uppercase; color:var(--navy); font-weight:400; margin-bottom:11px; }
 .dcard-main { font-family:'Montserrat',sans-serif; font-size:21px; font-weight:400; color:var(--text); line-height:1.4; margin-bottom:7px; }
 .dcard-sub { font-size:11px; font-weight:300; letter-spacing:0.1em; color:var(--muted); }
+.dc-split { display:flex; gap:0; align-items:flex-start; justify-content:center; width:100%; padding-top:16px; }
+.dc-gender { flex:1; }
+.dc-gender-lbl { font-size:8px; letter-spacing:0.4em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; font-weight:400; }
+.dc-divider { width:1px; background:var(--border); align-self:stretch; margin:0 12px; }
 
 /* ══════════════════════════════
    AYAH MID
@@ -336,6 +340,12 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
   .hero-scroll { bottom:28px; }
   .photo-band { height:360px; }
   .dcards { grid-template-columns:1fr 1fr; }
+  .dcard.d3, .dcard.d4 { grid-column: span 2; }
+  .dcard.d3 {
+    display:flex; flex-direction:row; align-items:center; justify-content:center;
+    text-align:center; gap:24px; padding:32px 28px;
+  }
+  .dcard.d3 .dcard-icon { margin-bottom:0; flex-shrink:0; }
   .rsvp-form-side { padding:52px 28px; }
   .swatches { gap:18px; }
   .sw-c { width:60px; height:60px; }
@@ -568,8 +578,24 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
           <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="11" r="5" stroke="#22304A" stroke-width="1.2"/><path d="M7 25c0-4.5 3-8 7-8s7 3.5 7 8" stroke="#22304A" stroke-width="1.2" stroke-linecap="round"/><path d="M19 8c1-1.5 3.5-1.5 4.5 0.5" stroke="#9AA9B8" stroke-width="1" stroke-linecap="round"/></svg>
         </div>
         <p class="dcard-lbl">Dress Code</p>
-        <p class="dcard-main">{{ $wedding['dress_code'] }}</p>
-        <p class="dcard-sub">{{ $wedding['dress_note'] }}</p>
+        @if(!empty($wedding['dress_code_ladies']) && !empty($wedding['dress_code_gents']))
+          <div class="dc-split">
+            <div class="dc-gender">
+              <p class="dc-gender-lbl">Ladies</p>
+              <p class="dcard-main">{{ $wedding['dress_code_ladies'] }}</p>
+              @if(!empty($wedding['dress_note_ladies']))<p class="dcard-sub">{{ $wedding['dress_note_ladies'] }}</p>@endif
+            </div>
+            <div class="dc-divider"></div>
+            <div class="dc-gender">
+              <p class="dc-gender-lbl">Gents</p>
+              <p class="dcard-main">{{ $wedding['dress_code_gents'] }}</p>
+              @if(!empty($wedding['dress_note_gents']))<p class="dcard-sub">{{ $wedding['dress_note_gents'] }}</p>@endif
+            </div>
+          </div>
+        @else
+          <p class="dcard-main">{{ $wedding['dress_code'] }}</p>
+          <p class="dcard-sub">{{ $wedding['dress_note'] }}</p>
+        @endif
       </div>
     </div>
 
