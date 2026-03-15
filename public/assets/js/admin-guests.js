@@ -87,20 +87,82 @@
   if (sideSel) sideSel.addEventListener('change', filter);
   filter();
 
+  // ── Bulk selection ────────────────────────────────
+  const selectAll     = document.getElementById('select-all');
+  const bulkBar       = document.getElementById('bulk-bar');
+  const bulkCount     = document.getElementById('bulk-count');
+  const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+  const bulkClearBtn  = document.getElementById('bulk-clear-btn');
+
+  function getChecked() {
+    return [...tbody.querySelectorAll('.row-cb:checked')];
+  }
+
+  function updateBulkBar() {
+    const checked = getChecked();
+    const n = checked.length;
+    bulkBar.style.display = n > 0 ? 'flex' : 'none';
+    bulkCount.textContent = n + ' row' + (n === 1 ? '' : 's') + ' selected';
+    selectAll.indeterminate = n > 0 && n < tbody.querySelectorAll('.row-cb').length;
+    selectAll.checked = n > 0 && n === tbody.querySelectorAll('tr[data-id] .row-cb').length;
+  }
+
+  tbody.addEventListener('change', function (e) {
+    if (e.target.classList.contains('row-cb')) updateBulkBar();
+  });
+
+  selectAll.addEventListener('change', function () {
+    tbody.querySelectorAll('tr[data-id] .row-cb').forEach(cb => { cb.checked = this.checked; });
+    updateBulkBar();
+  });
+
+  bulkClearBtn.addEventListener('click', function () {
+    tbody.querySelectorAll('.row-cb').forEach(cb => { cb.checked = false; });
+    selectAll.checked = false;
+    selectAll.indeterminate = false;
+    bulkBar.style.display = 'none';
+  });
+
+  bulkDeleteBtn.addEventListener('click', function () {
+    const checked = getChecked();
+    if (!checked.length) return;
+    const n = checked.length;
+    if (!confirm('Remove ' + n + ' guest' + (n === 1 ? '' : 's') + '?')) return;
+    const ids = checked.map(cb => cb.value);
+    bulkDeleteBtn.disabled = true;
+    const body = new URLSearchParams({ _token: csrf });
+    ids.forEach(id => body.append('ids[]', id));
+    fetch('/admin/guests/bulk-destroy', { method: 'POST', headers: HDRS, body })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) return;
+        checked.forEach(cb => cb.closest('tr').remove());
+        renumber();
+        refreshStats();
+        filter();
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+        bulkBar.style.display = 'none';
+      })
+      .catch(() => {})
+      .finally(() => { bulkDeleteBtn.disabled = false; });
+  });
+
   // ── Build new guest row ───────────────────────────
   function buildRow(g) {
     const sLabel  = CFG.sideLabels[g.side] || 'Other';
     const sideCol = CFG.hasSideCol
       ? `<td><span class="badge side-${esc(g.side)} guest-side">${esc(sLabel)}</span></td>`
       : '';
-    return `<tr data-status="pending" data-side="${esc(g.side)}">
+    return `<tr data-status="pending" data-side="${esc(g.side)}" data-id="${esc(g.id)}">
+      <td style="padding-right:0"><input type="checkbox" class="row-cb" value="${esc(g.id)}"></td>
       <td class="td-dim"></td>
       <td class="td-hi">${esc(g.mobile)}</td>
       <td class="guest-name">${esc(g.name || '—')}</td>
       ${sideCol}
       <td>—</td>
       <td><span class="badge attending-badge badge-pending">Pending</span></td>
-      <td class="plus-ones">—</td>
+      <td class="plus-ones">${esc(g.plus_ones ?? 0)}</td>
       <td><form method="POST" action="${esc(g.ceremony_url)}">
         <input type="hidden" name="_token" value="${esc(csrf)}">
         <button type="submit" class="ceremony-btn ceremony-no">No</button>
@@ -266,7 +328,7 @@
       badge.className   = 'badge attending-badge badge-' + statusVal;
       badge.textContent = statusVal === 'yes' ? 'Yes' : statusVal === 'no' ? 'No' : 'Pending';
 
-      activeRow.querySelector('.plus-ones').textContent = attending ? plusOnes : '—';
+      activeRow.querySelector('.plus-ones').textContent = plusOnes;
       activeRow.querySelectorAll('td')[CFG.rsvpNameCol].textContent = rsvpName || '—';
 
       const ceremonyBtn = activeRow.querySelector('.ceremony-btn');
@@ -292,4 +354,45 @@
     .catch(() => { modalMsg.textContent = 'Request failed.'; })
     .finally(() => { modalSave.disabled = false; });
   });
+  // ── CSV Import ────────────────────────────────────
+  const csvFile      = document.getElementById('csv-file');
+  const csvImportBtn = document.getElementById('csv-import-btn');
+  const csvFlash     = document.getElementById('csv-flash');
+  const csvFileLabel = document.getElementById('csv-file-label');
+
+  function showCsvFlash(msg, err) {
+    csvFlash.textContent = msg;
+    csvFlash.className = 'flash' + (err ? ' err' : '');
+    csvFlash.style.display = '';
+    clearTimeout(csvFlash._t);
+    csvFlash._t = setTimeout(() => { csvFlash.style.display = 'none'; }, 6000);
+  }
+
+  if (csvFile) {
+    csvFile.addEventListener('change', function () {
+      csvFileLabel.textContent = this.files.length ? this.files[0].name : 'Choose CSV file…';
+    });
+  }
+
+  if (csvImportBtn) {
+    csvImportBtn.addEventListener('click', function () {
+      if (!csvFile.files.length) { showCsvFlash('Please select a CSV file.', true); return; }
+      const fd = new FormData();
+      fd.append('csv', csvFile.files[0]);
+      fd.append('_token', csrf);
+      csvImportBtn.disabled = true;
+      fetch('/admin/guests/import', { method: 'POST', headers: HDRS, body: fd })
+        .then(r => r.json())
+        .then(d => {
+          let msg = `Imported: ${d.imported}, Skipped (duplicates): ${d.skipped}`;
+          if (d.errors.length) msg += `. Errors: ${d.errors.join('; ')}`;
+          showCsvFlash(msg, d.errors.length > 0);
+          if (d.imported > 0) { refreshStats(); setTimeout(() => location.reload(), 1500); }
+          csvFile.value = '';
+          csvFileLabel.textContent = 'Choose CSV file…';
+        })
+        .catch(() => showCsvFlash('Request failed.', true))
+        .finally(() => { csvImportBtn.disabled = false; });
+    });
+  }
 })();

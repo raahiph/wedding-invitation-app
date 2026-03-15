@@ -248,6 +248,55 @@ tbody tr:hover td { background:#F7F9FB; }
 .s-save:hover { background:#2C3E54; border-color:#2C3E54; }
 .s-saved { margin-top:14px; font-size:12px; color:#2E7D52; font-weight:400; }
 
+/* ─── Checkboxes ─────────────────────────────────── */
+.row-cb { width:15px; height:15px; cursor:pointer; accent-color:#1A2332; }
+
+/* ─── Bulk action bar ────────────────────────────── */
+.bulk-bar {
+  display:flex; align-items:center; gap:10px;
+  background:#1A2332; border-radius:8px;
+  padding:10px 16px; margin-bottom:8px;
+}
+.bulk-count { color:#8FA3B8; font-size:11px; font-weight:500; letter-spacing:0.05em; flex:1; }
+.bulk-delete-btn {
+  background:#C0392B; border:none; color:#FFFFFF;
+  font-family:'Montserrat',sans-serif; font-size:11px; font-weight:500;
+  letter-spacing:0.08em; text-transform:uppercase;
+  padding:7px 16px; border-radius:6px; cursor:pointer;
+  transition:background 0.2s;
+}
+.bulk-delete-btn:hover { background:#A93226; }
+.bulk-clear-btn {
+  background:none; border:1px solid rgba(255,255,255,0.15); color:#8FA3B8;
+  font-family:'Montserrat',sans-serif; font-size:11px; font-weight:400;
+  padding:7px 14px; border-radius:6px; cursor:pointer;
+  transition:border-color 0.2s, color 0.2s;
+}
+.bulk-clear-btn:hover { border-color:rgba(255,255,255,0.35); color:#D4E0EC; }
+
+/* ─── CSV Import ─────────────────────────────────── */
+.csv-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.csv-label {
+  display:inline-flex; align-items:center; gap:7px;
+  flex:1; min-width:200px; max-width:360px;
+  background:#F7F9FB; border:1px solid #C8D3DE;
+  color:#6B7E96; font-size:12px; font-weight:400;
+  padding:9px 12px; border-radius:6px; cursor:pointer;
+  transition:border-color 0.2s, color 0.2s;
+  white-space:nowrap; overflow:hidden;
+}
+.csv-label:hover { border-color:#6EA8D0; color:#3A4F65; }
+.csv-label span { overflow:hidden; text-overflow:ellipsis; }
+.csv-sample-link {
+  display:inline-flex; align-items:center; gap:6px;
+  color:#6B7E96; font-size:11px; font-weight:500;
+  text-decoration:none; letter-spacing:0.05em;
+  padding:9px 14px; border:1px solid #DDE2E8; border-radius:6px;
+  transition:color 0.2s, border-color 0.2s;
+  white-space:nowrap;
+}
+.csv-sample-link:hover { color:#1A2332; border-color:#6EA8D0; }
+
 /* ─── Responsive ──────────────────────────────────── */
 @media(max-width:768px) {
   .sidebar { transform:translateX(-100%); }

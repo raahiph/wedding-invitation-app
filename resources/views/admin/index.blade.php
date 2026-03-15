@@ -27,8 +27,8 @@
   <div class="stat"><strong id="stat-attending">{{ $totalAttending }}</strong><span>Attending</span></div>
   <div class="stat"><strong id="stat-heads">{{ $totalHeads }}</strong><span>Total Heads</span></div>
   <div class="stat"><strong id="stat-pending">{{ $totalGuests - $guests->filter(fn($g) => $g->rsvp)->count() }}</strong><span>Pending RSVP</span></div>
-  <div class="stat stat-groom"><strong id="stat-groom">{{ $groomCount }}</strong><span>{{ $wedding['groom'] }}'s Side</span></div>
-  <div class="stat stat-bride"><strong id="stat-bride">{{ $brideCount }}</strong><span>{{ $wedding['bride'] }}'s Side</span></div>
+  <div class="stat stat-groom"><strong id="stat-groom">{{ $groomCount }}</strong><span>{{ $wedding['groom'] }}'s Attending</span></div>
+  <div class="stat stat-bride"><strong id="stat-bride">{{ $brideCount }}</strong><span>{{ $wedding['bride'] }}'s Attending</span></div>
 </div>
 
 {{-- Add Guest --}}
@@ -57,6 +57,24 @@
   @endif
 </div>
 
+{{-- Import Guests --}}
+<div class="card">
+  <p class="card-title">Import Guests via CSV</p>
+  <div class="csv-row">
+    <label class="csv-label" for="csv-file">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span id="csv-file-label">Choose CSV file…</span>
+    </label>
+    <input type="file" id="csv-file" accept=".csv,text/csv" style="display:none">
+    <button class="form-btn" id="csv-import-btn">Import</button>
+    <a href="/assets/sample-guests.csv" download class="csv-sample-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Sample CSV
+    </a>
+  </div>
+  <p class="flash" id="csv-flash" style="display:none"></p>
+</div>
+
 @include('admin.partials.guest-table', ['showSide' => true])
 
 @include('admin.partials.edit-modal')
@@ -68,8 +86,8 @@ window.GUEST_CFG = {
   sideLabels:   { groom: '{{ $wedding['groom'] }}', bride: '{{ $wedding['bride'] }}', other: 'Other' },
   hasSideFilter: true,
   hasSideCol:    true,
-  sessionCol:    8,
-  rsvpNameCol:   4,
+  sessionCol:    9,
+  rsvpNameCol:   5,
   statsMode:    'server',
   statsUrl:     '{{ route('admin.stats') }}',
   currentSide:  '',

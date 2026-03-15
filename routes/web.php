@@ -104,6 +104,8 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::get('/', [AdminController::class, 'index'])->name('index');
     Route::get('/logout', [AdminController::class, 'logout'])->name('logout');
     Route::post('/guests', [AdminController::class, 'store'])->name('guests.store');
+    Route::post('/guests/import', [AdminController::class, 'importCsv'])->name('guests.import');
+    Route::post('/guests/bulk-destroy', [AdminController::class, 'bulkDestroy'])->name('guests.bulk-destroy');
     Route::delete('/guests/{guest}', [AdminController::class, 'destroy'])->name('guests.destroy');
     Route::post('/countdown-toggle', [AdminController::class, 'toggleCountdown'])->name('countdown.toggle');
     Route::post('/guests/{guest}/update', [AdminController::class, 'adminUpdateGuest'])->name('guests.update');

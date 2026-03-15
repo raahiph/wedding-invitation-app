@@ -51,9 +51,9 @@ class AdminController extends Controller
         $totalGuests    = $guests->count();
         $totalAttending = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
         $totalHeads     = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)
-                                 ->sum(fn($g) => 1 + $g->rsvp->plus_ones);
-        $groomCount     = $guests->where('side', 'groom')->count();
-        $brideCount     = $guests->where('side', 'bride')->count();
+                                 ->sum(fn($g) => 1 + $g->plus_ones);
+        $groomCount     = $guests->where('side', 'groom')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
+        $brideCount     = $guests->where('side', 'bride')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
 
         $rsvpMode = file_exists(storage_path('app/rsvp_mode'));
 
@@ -108,6 +108,7 @@ class AdminController extends Controller
                     'side'             => $created->side,
                     'attends_ceremony' => (bool) $created->attends_ceremony,
                     'session'          => $created->session,
+                    'plus_ones'        => (int) $created->plus_ones,
                     'ceremony_url'     => route('admin.guests.ceremony', $created),
                     'update_url'       => route('admin.guests.update', $created),
                     'destroy_url'      => route('admin.guests.destroy', $created),
@@ -148,7 +149,7 @@ class AdminController extends Controller
             $guest->mobile = $newMobile;
         }
 
-        $guest->update(['name' => $name, 'notes' => $notes, 'side' => $side, 'attends_ceremony' => $attendsCeremony, 'session' => $session]);
+        $guest->update(['name' => $name, 'notes' => $notes, 'side' => $side, 'attends_ceremony' => $attendsCeremony, 'session' => $session, 'plus_ones' => $plusOnes]);
 
         if ($attending === '') {
             $guest->rsvp()->delete();
@@ -157,7 +158,6 @@ class AdminController extends Controller
                 ['guest_id' => $guest->id],
                 [
                     'attending'  => $attending === 'yes',
-                    'plus_ones'  => $plusOnes,
                     'full_name'  => $fullName ?: ($guest->rsvp?->full_name ?? $name),
                 ]
             );
@@ -182,7 +182,7 @@ class AdminController extends Controller
         $totalGuests    = $guests->count();
         $totalAttending = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
         $totalHeads     = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)
-                                 ->sum(fn($g) => 1 + $g->rsvp->plus_ones);
+                                 ->sum(fn($g) => 1 + $g->plus_ones);
 
         return view('admin.guests', compact('guests', 'side', 'totalGuests', 'totalAttending', 'totalHeads'));
     }
@@ -197,9 +197,64 @@ class AdminController extends Controller
             'heads'     => $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)
                                   ->sum(fn($g) => 1 + $g->rsvp->plus_ones),
             'pending'   => $guests->filter(fn($g) => !$g->rsvp)->count(),
-            'groom'     => $guests->where('side', 'groom')->count(),
-            'bride'     => $guests->where('side', 'bride')->count(),
+            'groom'     => $guests->where('side', 'groom')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
+            'bride'     => $guests->where('side', 'bride')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
         ]);
+    }
+
+    public function bulkDestroy(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $ids = array_filter(array_map('intval', (array) $request->input('ids', [])));
+        $deleted = Guest::whereIn('id', $ids)->delete();
+        return response()->json(['ok' => true, 'deleted' => $deleted]);
+    }
+
+    public function importCsv(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate(['csv' => 'required|file|mimes:csv,txt|max:512']);
+
+        $handle   = fopen($request->file('csv')->getRealPath(), 'r');
+        $header   = array_map('strtolower', array_map('trim', fgetcsv($handle)));
+        $imported = 0;
+        $skipped  = 0;
+        $errors   = [];
+        $row      = 1;
+
+        while (($cols = fgetcsv($handle)) !== false) {
+            $row++;
+            if (count($cols) !== count($header)) {
+                $errors[] = "Row $row: column count mismatch";
+                continue;
+            }
+            $data = array_combine($header, array_map('trim', $cols));
+
+            $mobile = Guest::normaliseMobile($data['mobile'] ?? '');
+            if (strlen($mobile) < 7) {
+                $errors[] = "Row $row: invalid mobile";
+                continue;
+            }
+
+            $name     = substr($data['name']  ?? '', 0, 120);
+            $notes    = substr($data['notes'] ?? '', 0, 255);
+            $side     = in_array($data['side'] ?? '', ['groom', 'bride', 'other']) ? $data['side'] : 'other';
+            $ceremony = in_array(strtolower($data['attends_ceremony'] ?? ''), ['1', 'yes', 'true']);
+            $plusOnes = max(0, min(4, (int) ($data['plus_ones'] ?? 0)));
+
+            $guest = Guest::firstOrCreate(
+                ['mobile' => $mobile],
+                ['name' => $name, 'notes' => $notes, 'side' => $side, 'attends_ceremony' => $ceremony, 'plus_ones' => $plusOnes]
+            );
+
+            if ($guest->wasRecentlyCreated) {
+                $imported++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        fclose($handle);
+
+        return response()->json(compact('imported', 'skipped', 'errors'));
     }
 
     public function showSettings()

@@ -19,10 +19,17 @@
   <span class="tbl-count" id="guest-count"></span>
 </div>
 
+<div class="bulk-bar" id="bulk-bar" style="display:none">
+  <span class="bulk-count" id="bulk-count"></span>
+  <button class="bulk-delete-btn" id="bulk-delete-btn">Delete Selected</button>
+  <button class="bulk-clear-btn" id="bulk-clear-btn">Clear</button>
+</div>
+
 <div class="tbl-wrap">
   <table id="guest-table">
     <thead>
       <tr>
+        <th style="width:36px;padding-right:0"><input type="checkbox" id="select-all" class="row-cb" title="Select all"></th>
         <th>#</th>
         <th>Mobile</th>
         <th>Name</th>
@@ -43,7 +50,8 @@
         $sideLabel = $guest->side === 'groom' ? $wedding['groom'] : ($guest->side === 'bride' ? $wedding['bride'] : 'Other');
         $sideCls   = 'side-' . $guest->side;
       @endphp
-      <tr data-status="{{ $attStatus }}" data-side="{{ $guest->side }}">
+      <tr data-status="{{ $attStatus }}" data-side="{{ $guest->side }}" data-id="{{ $guest->id }}">
+        <td style="padding-right:0"><input type="checkbox" class="row-cb" value="{{ $guest->id }}"></td>
         <td class="td-dim">{{ $i + 1 }}</td>
         <td class="td-hi">{{ $guest->mobile }}</td>
         <td class="guest-name">{{ $guest->name ?: '—' }}</td>
@@ -56,7 +64,7 @@
             {{ $attStatus === 'yes' ? 'Yes' : ($attStatus === 'no' ? 'No' : 'Pending') }}
           </span>
         </td>
-        <td class="plus-ones">{{ $guest->rsvp ? $guest->rsvp->plus_ones : '—' }}</td>
+        <td class="plus-ones">{{ $guest->plus_ones }}</td>
         <td>
           <form method="POST" action="{{ route('admin.guests.ceremony', $guest) }}">
             @csrf
@@ -81,7 +89,7 @@
             data-notes="{{ $guest->notes }}"
             data-side="{{ $guest->side }}"
             data-attending="{{ $attStatus === 'pending' ? '' : $attStatus }}"
-            data-plus="{{ $guest->rsvp ? $guest->rsvp->plus_ones : 0 }}"
+            data-plus="{{ $guest->plus_ones }}"
             data-rsvp-name="{{ $guest->rsvp->full_name ?? '' }}"
             data-ceremony="{{ $guest->attends_ceremony ? '1' : '0' }}"
             data-session="{{ $guest->session ?? '' }}">Edit</button>
@@ -93,7 +101,7 @@
       </tr>
       @empty
       <tr>
-        <td colspan="{{ $showSide ? 11 : 10 }}" style="text-align:center;color:#8FA3B8;padding:32px;">
+        <td colspan="{{ $showSide ? 12 : 11 }}" style="text-align:center;color:#8FA3B8;padding:32px;">
           {{ $emptyMessage ?? 'No guests yet.' }}
         </td>
       </tr>
