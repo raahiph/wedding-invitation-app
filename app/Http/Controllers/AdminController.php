@@ -195,7 +195,7 @@ class AdminController extends Controller
             'total'     => $guests->count(),
             'attending' => $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
             'heads'     => $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)
-                                  ->sum(fn($g) => 1 + $g->rsvp->plus_ones),
+                                  ->sum(fn($g) => 1 + $g->plus_ones),
             'pending'   => $guests->filter(fn($g) => !$g->rsvp)->count(),
             'groom'     => $guests->where('side', 'groom')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
             'bride'     => $guests->where('side', 'bride')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),

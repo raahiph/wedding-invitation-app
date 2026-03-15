@@ -397,7 +397,7 @@ function prependPhoto(id, thumbUrl) {
 
 // ── Poll for new photos every 15s ───────────────────────────────
 function poll() {
-  fetch('{{ route("gallery.photos") }}')
+  fetch('{{ route("gallery.photos") }}', { cache: 'no-store' })
     .then(r => r.json())
     .then(photos => {
       photos.forEach(p => prependPhoto(p.id, p.thumb_url));

@@ -31,7 +31,7 @@
   // ── Stats ─────────────────────────────────────────
   function refreshStats() {
     if (CFG.statsMode === 'server') {
-      fetch(CFG.statsUrl, { headers: HDRS })
+      fetch(CFG.statsUrl, { headers: HDRS, cache: 'no-store' })
         .then(r => r.json())
         .then(d => {
           document.getElementById('stat-total').textContent     = d.total;
