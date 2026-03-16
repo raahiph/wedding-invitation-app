@@ -70,7 +70,7 @@ window.GUEST_CFG = {
   hasSideFilter: false,
   hasSideCol:    false,
   sessionCol:    8,
-  rsvpNameCol:   4,
+  nicknameCol:   4,
   statsMode:    'dom',
   statsUrl:     '',
   currentSide:  '{{ $side }}',

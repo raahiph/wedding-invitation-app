@@ -33,8 +33,8 @@
         <th>#</th>
         <th>Mobile</th>
         <th>Name</th>
+        <th>Nickname</th>
         @if($showSide)<th>Side</th>@endif
-        <th>RSVP Name</th>
         <th>Attending</th>
         <th>+Guests</th>
         <th>Ceremony</th>
@@ -55,10 +55,10 @@
         <td class="td-dim">{{ $i + 1 }}</td>
         <td class="td-hi">{{ $guest->mobile }}</td>
         <td class="guest-name">{{ $guest->name ?: '—' }}</td>
+        <td>{{ $guest->nickname ?: '—' }}</td>
         @if($showSide)
         <td><span class="badge {{ $sideCls }} guest-side">{{ $sideLabel }}</span></td>
         @endif
-        <td>{{ $guest->rsvp->full_name ?? '—' }}</td>
         <td>
           <span class="badge attending-badge badge-{{ $attStatus }}">
             {{ $attStatus === 'yes' ? 'Yes' : ($attStatus === 'no' ? 'No' : 'Pending') }}
@@ -90,7 +90,7 @@
             data-side="{{ $guest->side }}"
             data-attending="{{ $attStatus === 'pending' ? '' : $attStatus }}"
             data-plus="{{ $guest->plus_ones }}"
-            data-rsvp-name="{{ $guest->rsvp->full_name ?? '' }}"
+            data-nickname="{{ $guest->nickname ?? '' }}"
             data-ceremony="{{ $guest->attends_ceremony ? '1' : '0' }}"
             data-session="{{ $guest->session ?? '' }}">Edit</button>
           <form method="POST" action="{{ route('admin.guests.destroy', $guest) }}" style="display:inline">

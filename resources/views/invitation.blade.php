@@ -743,7 +743,6 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
 
     const body = new URLSearchParams({
       _token:     document.querySelector('meta[name="csrf-token"]').content,
-      full_name:  document.getElementById('rsvp-name').value,
       attending:  document.getElementById('rsvp-attending').value,
       plus_ones:  document.getElementById('rsvp-plus').value,
     });

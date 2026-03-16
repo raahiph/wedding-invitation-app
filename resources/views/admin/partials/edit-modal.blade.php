@@ -20,14 +20,14 @@
       </div>
       <div class="s-grid2">
         <div class="s-field" style="grid-column:1/-1">
-          <label>Notes</label>
-          <input class="form-input" style="width:100%" type="text" id="modal-notes" maxlength="255">
+          <label>Nickname</label>
+          <input class="form-input" style="width:100%" type="text" id="modal-nickname" maxlength="120" placeholder="Optional nickname">
         </div>
       </div>
       <div class="s-grid2">
         <div class="s-field" style="grid-column:1/-1">
-          <label>RSVP Name</label>
-          <input class="form-input" style="width:100%" type="text" id="modal-rsvp-name" maxlength="120" placeholder="As submitted by guest">
+          <label>Notes</label>
+          <input class="form-input" style="width:100%" type="text" id="modal-notes" maxlength="255">
         </div>
       </div>
       <div class="s-grid2">

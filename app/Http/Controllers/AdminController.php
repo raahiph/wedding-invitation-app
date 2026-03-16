@@ -131,12 +131,12 @@ class AdminController extends Controller
     public function adminUpdateGuest(Request $request, Guest $guest)
     {
         $name            = substr(trim($request->input('name', '')), 0, 120);
+        $nickname        = substr(trim($request->input('nickname', '')), 0, 120);
         $notes           = substr(trim($request->input('notes', '')), 0, 255);
         $side            = in_array($request->input('side'), ['groom', 'bride', 'other']) ? $request->input('side') : 'other';
         $attending       = $request->input('attending'); // 'yes', 'no', or ''
         $plusOnes        = min(4, max(0, (int) $request->input('plus_ones', 0)));
         $attendsCeremony = $request->input('attends_ceremony') === '1';
-        $fullName        = substr(trim($request->input('full_name', '')), 0, 120);
         $sessionRaw      = $request->input('session', '');
         $session         = in_array($sessionRaw, ['1', '2']) ? (int) $sessionRaw : null;
 
@@ -149,17 +149,14 @@ class AdminController extends Controller
             $guest->mobile = $newMobile;
         }
 
-        $guest->update(['name' => $name, 'notes' => $notes, 'side' => $side, 'attends_ceremony' => $attendsCeremony, 'session' => $session, 'plus_ones' => $plusOnes]);
+        $guest->update(['name' => $name, 'nickname' => $nickname, 'notes' => $notes, 'side' => $side, 'attends_ceremony' => $attendsCeremony, 'session' => $session, 'plus_ones' => $plusOnes]);
 
         if ($attending === '') {
             $guest->rsvp()->delete();
         } else {
             Rsvp::updateOrCreate(
                 ['guest_id' => $guest->id],
-                [
-                    'attending'  => $attending === 'yes',
-                    'full_name'  => $fullName ?: ($guest->rsvp?->full_name ?? $name),
-                ]
+                ['attending' => $attending === 'yes']
             );
         }
 
@@ -234,15 +231,18 @@ class AdminController extends Controller
                 continue;
             }
 
-            $name     = substr($data['name']  ?? '', 0, 120);
-            $notes    = substr($data['notes'] ?? '', 0, 255);
+            $name     = substr($data['name']     ?? '', 0, 120);
+            $nickname = substr($data['nickname'] ?? '', 0, 120);
+            $notes    = substr($data['notes']    ?? '', 0, 255);
             $side     = in_array($data['side'] ?? '', ['groom', 'bride', 'other']) ? $data['side'] : 'other';
             $ceremony = in_array(strtolower($data['attends_ceremony'] ?? ''), ['1', 'yes', 'true']);
             $plusOnes = max(0, min(4, (int) ($data['plus_ones'] ?? 0)));
+            $sessionRaw = $data['session'] ?? '';
+            $session    = in_array($sessionRaw, ['1', '2']) ? (int) $sessionRaw : null;
 
             $guest = Guest::firstOrCreate(
                 ['mobile' => $mobile],
-                ['name' => $name, 'notes' => $notes, 'side' => $side, 'attends_ceremony' => $ceremony, 'plus_ones' => $plusOnes]
+                ['name' => $name, 'nickname' => $nickname, 'notes' => $notes, 'side' => $side, 'attends_ceremony' => $ceremony, 'plus_ones' => $plusOnes, 'session' => $session]
             );
 
             if ($guest->wasRecentlyCreated) {

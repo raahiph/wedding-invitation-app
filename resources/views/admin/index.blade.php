@@ -84,7 +84,7 @@ window.GUEST_CFG = {
   hasSideFilter: true,
   hasSideCol:    true,
   sessionCol:    9,
-  rsvpNameCol:   5,
+  nicknameCol:   4,
   statsMode:    'server',
   statsUrl:     '{{ route('admin.stats') }}',
   currentSide:  '',

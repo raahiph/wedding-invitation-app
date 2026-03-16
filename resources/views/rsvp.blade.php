@@ -447,9 +447,9 @@ body::before {
 <div class="rsvp-section">
   <div class="rsvp-inner">
     <!-- <span class="s-label">RSVP</span> -->
-    @if($guest->name)
+    @if($guest->nickname || $guest->name)
       <p class="rsvp-dear">Dearest</p>
-      <span class="rsvp-guest-name">{{ $guest->name }}</span>
+      <span class="rsvp-guest-name">{{ $guest->nickname ?: $guest->name }}</span>
     @endif
     <h2 class="s-title">Will you <em style="font-style:italic;color:var(--navy);">join us?</em></h2>
     <p class="rsvp-lead">Kindly respond by {{ $wedding['rsvp_by'] }}.<br>We cannot wait to celebrate with you.</p>

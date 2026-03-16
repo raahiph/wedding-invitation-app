@@ -159,8 +159,8 @@
       <td class="td-dim"></td>
       <td class="td-hi">${esc(g.mobile)}</td>
       <td class="guest-name">${esc(g.name || '—')}</td>
-      ${sideCol}
       <td>—</td>
+      ${sideCol}
       <td><span class="badge attending-badge badge-pending">Pending</span></td>
       <td class="plus-ones">${esc(g.plus_ones ?? 0)}</td>
       <td><form method="POST" action="${esc(g.ceremony_url)}">
@@ -174,7 +174,7 @@
           data-url="${esc(g.update_url)}" data-mobile="${esc(g.mobile)}"
           data-name="${esc(g.name)}" data-notes="${esc(g.notes)}"
           data-side="${esc(g.side)}" data-attending="" data-plus="0"
-          data-rsvp-name="" data-ceremony="0" data-session="">Edit</button>
+          data-nickname="" data-ceremony="0" data-session="">Edit</button>
         <form method="POST" action="${esc(g.destroy_url)}" style="display:inline">
           <input type="hidden" name="_token" value="${esc(csrf)}">
           <input type="hidden" name="_method" value="DELETE">
@@ -262,7 +262,7 @@
     document.getElementById('modal-mobile-input').value       = btn.dataset.mobile;
     document.getElementById('modal-name').value                = btn.dataset.name      || '';
     document.getElementById('modal-notes').value               = btn.dataset.notes     || '';
-    document.getElementById('modal-rsvp-name').value           = btn.dataset.rsvpName  || '';
+    document.getElementById('modal-nickname').value             = btn.dataset.nickname  || '';
     document.getElementById('modal-side').value                = btn.dataset.side      || 'other';
     document.getElementById('modal-attending').value           = btn.dataset.attending || '';
     document.getElementById('modal-plus').value                = btn.dataset.plus      || '0';
@@ -296,7 +296,7 @@
     const name      = document.getElementById('modal-name').value;
     const notes     = document.getElementById('modal-notes').value;
     const side      = document.getElementById('modal-side').value;
-    const rsvpName  = document.getElementById('modal-rsvp-name').value;
+    const nickname  = document.getElementById('modal-nickname').value;
     const ceremony  = document.getElementById('modal-ceremony').checked ? '1' : '0';
     const session   = document.getElementById('modal-session').value;
 
@@ -304,7 +304,7 @@
 
     fetch(activeUrl, {
       method: 'POST', headers: HDRS,
-      body: new URLSearchParams({ _token: csrf, mobile, name, notes, side, attending, plus_ones: plusOnes, full_name: rsvpName, attends_ceremony: ceremony, session })
+      body: new URLSearchParams({ _token: csrf, mobile, name, nickname, notes, side, attending, plus_ones: plusOnes, attends_ceremony: ceremony, session })
     })
     .then(r => r.json())
     .then(data => {
@@ -329,7 +329,7 @@
       badge.textContent = statusVal === 'yes' ? 'Yes' : statusVal === 'no' ? 'No' : 'Pending';
 
       activeRow.querySelector('.plus-ones').textContent = plusOnes;
-      activeRow.querySelectorAll('td')[CFG.rsvpNameCol].textContent = rsvpName || '—';
+      activeRow.querySelectorAll('td')[CFG.nicknameCol].textContent = nickname || '—';
 
       const ceremonyBtn = activeRow.querySelector('.ceremony-btn');
       if (ceremonyBtn) {
@@ -339,7 +339,7 @@
       }
 
       Object.assign(activeRow.querySelector('.edit-btn').dataset,
-        { mobile: data.mobile, name, notes, side, attending, plus: plusOnes, rsvpName, ceremony, session });
+        { mobile: data.mobile, name, nickname, notes, side, attending, plus: plusOnes, ceremony, session });
       document.getElementById('modal-mobile').textContent = data.mobile;
 
       const sessionTd = activeRow.querySelectorAll('td')[CFG.sessionCol];

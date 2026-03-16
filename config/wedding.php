@@ -17,7 +17,7 @@ return [
     'dress_note_ladies'  => 'Modest & elegant attire',
     'dress_code_gents'   => 'Smart Formal',
     'dress_note_gents'   => 'White Shirt & Navy Pants',
-    'rsvp_by'      => 'April 30, 2026',
+    'rsvp_by'      => 'March 26, 2026',
     'datetime_iso' => '2026-05-15T17:00:00+05:00',
 
     // Raw picker values — derived/stored by admin settings form
@@ -26,7 +26,7 @@ return [
     'reception_time'      => '5:30 pm',
     'reception_time_words' => "at five-thirty in the evening",
     'timezone'            => '+05:00',
-    'rsvp_by_raw'         => '2026-04-30',
+    'rsvp_by_raw'         => '2026-03-26',
 
     // Wedding window (ceremony guests)
     'wedding_start'       => '4:45 pm',
