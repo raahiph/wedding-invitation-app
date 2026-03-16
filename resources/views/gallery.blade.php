@@ -169,12 +169,22 @@ body::before {
   box-shadow:0 2px 10px rgba(0,0,0,0.07);
   animation:fadeIn 0.5s ease both;
   cursor:pointer;
+  position:relative;
 }
 .gl-item img {
   width:100%; display:block;
   transition:transform 0.4s ease;
 }
 .gl-item:hover img { transform:scale(1.04); }
+.gl-play-badge {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:44px; height:44px; border-radius:50%;
+  background:rgba(0,0,0,0.5);
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:none; transition:background 0.2s;
+}
+.gl-item:hover .gl-play-badge { background:rgba(0,0,0,0.72); }
+.gl-play-badge svg { width:18px; height:18px; fill:white; margin-left:3px; }
 
 @media(max-width:1100px) { .gl-grid { columns:3; } }
 @media(max-width:700px)  { .gl-grid { columns:2; } }
@@ -242,10 +252,10 @@ body::before {
 </header>
 
 <div class="gl-upload-bar">
-  <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
+  <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp,video/mp4" multiple style="display:none">
   <button class="gl-upload-btn" id="upload-btn" onclick="document.getElementById('photo-input').click()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    Share Photos
+    Share Photos & Videos
   </button>
 </div>
 <div class="gl-queue" id="gl-queue">
@@ -258,8 +268,11 @@ body::before {
   @endif
   <div class="gl-grid" id="gl-grid">
     @foreach($photos as $photo)
-      <div class="gl-item" data-id="{{ $photo->id }}" data-src="{{ $photo->thumbUrl() }}">
-        <img src="{{ $photo->thumbUrl() }}" loading="lazy" alt="Guest photo">
+      <div class="gl-item" data-id="{{ $photo->id }}" data-src="{{ $photo->thumbUrl() }}" data-video="{{ $photo->is_video ? '1' : '0' }}">
+        <img src="{{ $photo->thumbUrl() }}" loading="lazy" alt="{{ $photo->is_video ? 'Guest video thumbnail' : 'Guest photo' }}">
+        @if($photo->is_video)
+          <div class="gl-play-badge"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        @endif
       </div>
     @endforeach
   </div>
@@ -300,14 +313,38 @@ document.getElementById('photo-input').addEventListener('change', function () {
   files.forEach(uploadFile);
 });
 
+// ── Video thumbnail capture ──────────────────────────────────────
+function captureVideoThumbnail(file) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.muted = true; video.playsInline = true;
+    const url = URL.createObjectURL(file);
+    video.src = url;
+    video.addEventListener('loadedmetadata', () => { video.currentTime = 0; });
+    video.addEventListener('seeked', () => {
+      // Double rAF ensures the browser has painted the decoded frame before capture
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const canvas = document.createElement('canvas');
+        canvas.width  = video.videoWidth  || 1280;
+        canvas.height = video.videoHeight || 720;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Capture failed')), 'image/jpeg', 0.85);
+      }));
+    });
+    video.addEventListener('error', () => { URL.revokeObjectURL(url); reject(new Error('Load failed')); });
+  });
+}
+
 // ── Upload a single file ─────────────────────────────────────────
-function uploadFile(file) {
+async function uploadFile(file) {
+  const isVideo = file.type === 'video/mp4';
   // Create queue row
   const li       = document.createElement('li');
   li.className   = 'gl-queue-item';
   li.innerHTML   = `
     <span class="gl-queue-name">${escHtml(file.name)}</span>
-    <span class="gl-queue-status" id="qs-status">0%</span>
+    <span class="gl-queue-status" id="qs-status">${isVideo ? 'Preparing…' : '0%'}</span>
     <div class="gl-queue-bar"><div class="gl-queue-fill" id="qs-fill"></div></div>`;
   queueList.appendChild(li);
 
@@ -325,6 +362,19 @@ function uploadFile(file) {
   const form = new FormData();
   form.append('photo', file);
   form.append('_token', csrfToken);
+
+  if (isVideo) {
+    try {
+      const thumb = await captureVideoThumbnail(file);
+      form.append('thumbnail', thumb, 'thumbnail.jpg');
+      statusEl.textContent = '0%';
+    } catch {
+      markError(fillEl, statusEl, 'Thumbnail failed');
+      activeUploads--;
+      checkQueueDone();
+      return;
+    }
+  }
 
   const xhr = new XMLHttpRequest();
   xhr.open('POST', '{{ route("gallery.upload") }}');
@@ -345,7 +395,7 @@ function uploadFile(file) {
         fillEl.classList.add('done');
         statusEl.textContent = 'Done';
         statusEl.className   = 'gl-queue-status done';
-        prependPhoto(res.photo.id, res.photo.thumb_url);
+        prependPhoto(res.photo.id, res.photo.thumb_url, res.photo.is_video);
         if (emptyMsg) emptyMsg.remove();
       } else {
         markError(fillEl, statusEl, res.message || 'Failed');
@@ -388,15 +438,17 @@ function escHtml(str) {
 }
 
 // ── Prepend a new photo card ─────────────────────────────────────
-function prependPhoto(id, thumbUrl) {
+function prependPhoto(id, thumbUrl, isVideo) {
   if (knownIds.has(id)) return;
   knownIds.add(id);
   const div = document.createElement('div');
   div.className = 'gl-item';
-  div.dataset.id  = id;
-  div.dataset.src = thumbUrl;
+  div.dataset.id    = id;
+  div.dataset.src   = thumbUrl;
+  div.dataset.video = isVideo ? '1' : '0';
   div.style.animationDelay = '0s';
-  div.innerHTML = '<img src="' + thumbUrl + '" loading="lazy" alt="Guest photo">';
+  div.innerHTML = '<img src="' + thumbUrl + '" loading="lazy" alt="' + (isVideo ? 'Guest video thumbnail' : 'Guest photo') + '">'
+    + (isVideo ? '<div class="gl-play-badge"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>' : '');
   grid.prepend(div);
   attachLightbox(div);
 }
@@ -406,7 +458,7 @@ function poll() {
   fetch('{{ route("gallery.photos") }}', { cache: 'no-store' })
     .then(r => r.json())
     .then(photos => {
-      photos.forEach(p => prependPhoto(p.id, p.thumb_url));
+      photos.forEach(p => prependPhoto(p.id, p.thumb_url, p.is_video));
       if (photos.length && emptyMsg) emptyMsg.remove();
     })
     .catch(() => {});

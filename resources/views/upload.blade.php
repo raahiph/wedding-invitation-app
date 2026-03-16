@@ -182,18 +182,18 @@ input[type=file] { display:none; }
   <h1 class="up-names">{{ $wedding['groom'] }} &amp;&nbsp; {{ $wedding['bride'] }}</h1>
   <p class="up-sub">{{ $wedding['date'] }}</p>
   <div class="up-rule"></div>
-  <p class="up-label">Share your photos from our day</p>
+  <p class="up-label">Share your photos and videos from our day</p>
 
-  <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple>
+  <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp,video/mp4" multiple>
 
-  <div class="up-zone" id="up-zone" role="button" tabindex="0" aria-label="Choose photos to upload">
+  <div class="up-zone" id="up-zone" role="button" tabindex="0" aria-label="Choose photos or videos to upload">
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22304A" stroke-width="1.2">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
       <polyline points="17 8 12 3 7 8"/>
       <line x1="12" y1="3" x2="12" y2="15"/>
     </svg>
-    <p class="up-zone-text">Tap to choose photos<br>or drag &amp; drop here</p>
-    <p class="up-zone-hint">JPG, PNG or WEBP · up to 30 MB each</p>
+    <p class="up-zone-text">Tap to choose photos or videos<br>or drag &amp; drop here</p>
+    <p class="up-zone-hint">JPG, PNG, WEBP or MP4 · up to 30 MB (200 MB for videos)</p>
   </div>
 
   <div class="up-queue" id="up-queue">
@@ -205,7 +205,7 @@ input[type=file] { display:none; }
       <circle cx="12" cy="12" r="10"/>
       <polyline points="9 12 11 14 15 10"/>
     </svg>
-    <p class="up-done-text">Photos shared — thank you!</p>
+    <p class="up-done-text">Shared — thank you!</p>
     <button class="up-more-btn" id="up-more-btn">Share more</button>
   </div>
 </div>
@@ -240,7 +240,7 @@ zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
 zone.addEventListener('drop', e => {
   e.preventDefault();
   zone.classList.remove('drag');
-  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type === 'video/mp4');
   if (files.length) startUploads(files);
 });
 
@@ -251,12 +251,35 @@ function startUploads(files) {
   files.forEach(uploadFile);
 }
 
-function uploadFile(file) {
+function captureVideoThumbnail(file) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.muted = true; video.playsInline = true;
+    const url = URL.createObjectURL(file);
+    video.src = url;
+    video.addEventListener('loadedmetadata', () => { video.currentTime = 0; });
+    video.addEventListener('seeked', () => {
+      // Double rAF ensures the browser has painted the decoded frame before capture
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const canvas = document.createElement('canvas');
+        canvas.width  = video.videoWidth  || 1280;
+        canvas.height = video.videoHeight || 720;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Capture failed')), 'image/jpeg', 0.85);
+      }));
+    });
+    video.addEventListener('error', () => { URL.revokeObjectURL(url); reject(new Error('Load failed')); });
+  });
+}
+
+async function uploadFile(file) {
+  const isVideo = file.type === 'video/mp4';
   const li     = document.createElement('li');
   li.className = 'up-queue-item';
   li.innerHTML = `
     <span class="up-queue-name">${escHtml(file.name)}</span>
-    <span class="up-queue-status">0%</span>
+    <span class="up-queue-status">${isVideo ? 'Preparing…' : '0%'}</span>
     <div class="up-queue-bar"><div class="up-queue-fill"></div></div>`;
   queueList.appendChild(li);
 
@@ -268,6 +291,19 @@ function uploadFile(file) {
   const form = new FormData();
   form.append('photo', file);
   form.append('_token', csrfToken);
+
+  if (isVideo) {
+    try {
+      const thumb = await captureVideoThumbnail(file);
+      form.append('thumbnail', thumb, 'thumbnail.jpg');
+      statusEl.textContent = '0%';
+    } catch {
+      markError(fillEl, statusEl, 'Thumbnail failed');
+      activeUploads--;
+      checkDone();
+      return;
+    }
+  }
 
   const xhr = new XMLHttpRequest();
   xhr.open('POST', '{{ route("gallery.upload") }}');

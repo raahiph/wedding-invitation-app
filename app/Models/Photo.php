@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Photo extends Model
 {
-    protected $fillable = ['guest_id', 'dropbox_path', 'thumb_path', 'approved'];
+    protected $fillable = ['guest_id', 'dropbox_path', 'thumb_path', 'approved', 'is_video'];
 
-    protected $casts = ['approved' => 'boolean'];
+    protected $casts = ['approved' => 'boolean', 'is_video' => 'boolean'];
 
     public function guest()
     {
