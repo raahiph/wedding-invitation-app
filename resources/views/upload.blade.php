@@ -6,12 +6,18 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>{{ $wedding['groom'] }} & {{ $wedding['bride'] }} — Share a Photo</title>
 <meta name="description" content="Share your photos from the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — {{ $wedding['date'] }}, {{ $wedding['city'] }}.">
-<meta name="robots" content="noindex">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#22304A">
 <meta name="twitter:card" content="summary_large_image">
 <meta property="og:title" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — Share a Photo">
 <meta property="og:description" content="Upload your photos from our wedding day — {{ $wedding['date'] }}, {{ $wedding['city'] }}.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="/assets/img/og-cover.png">
+<meta property="og:image" content="{{ config('app.url') }}/assets/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:url" content="{{ request()->url() }}">
+<meta property="og:site_name" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }}">
 <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/32x32.png">
 <link rel="icon" type="image/png" sizes="180x180" href="/assets/img/180x180.png">
