@@ -319,10 +319,12 @@ function captureVideoThumbnail(file) {
     const video = document.createElement('video');
     video.muted = true; video.playsInline = true;
     const url = URL.createObjectURL(file);
-    video.src = url;
-    video.addEventListener('loadedmetadata', () => { video.currentTime = 0; });
-    video.addEventListener('seeked', () => {
-      // Double rAF ensures the browser has painted the decoded frame before capture
+    let captured = false;
+
+    function capture() {
+      if (captured) return;
+      captured = true;
+      video.pause();
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const canvas = document.createElement('canvas');
         canvas.width  = video.videoWidth  || 1280;
@@ -331,8 +333,20 @@ function captureVideoThumbnail(file) {
         URL.revokeObjectURL(url);
         canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Capture failed')), 'image/jpeg', 0.85);
       }));
-    });
+    }
+
+    // timeupdate fires after play() decodes the first frame — reliable on iOS Safari
+    video.addEventListener('timeupdate', capture);
+    // seeked as fallback for desktop browsers
+    video.addEventListener('seeked', capture);
     video.addEventListener('error', () => { URL.revokeObjectURL(url); reject(new Error('Load failed')); });
+
+    video.src = url;
+    // play() forces the browser to decode frames (required on iOS)
+    video.play().catch(() => {
+      // Autoplay blocked — fall back to seek approach
+      video.currentTime = 0.1;
+    });
   });
 }
 
