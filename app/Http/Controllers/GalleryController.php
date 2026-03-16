@@ -31,7 +31,6 @@ class GalleryController extends Controller
             ->map(fn($p) => [
                 'id'         => $p->id,
                 'thumb_url'  => $p->thumbUrl(),
-                'is_video'   => (bool) $p->is_video,
                 'created_at' => $p->created_at->diffForHumans(),
             ]);
 
@@ -40,20 +39,11 @@ class GalleryController extends Controller
 
     public function upload(Request $request)
     {
-        $file    = $request->file('photo');
-        $isVideo = $file && str_starts_with($file->getMimeType(), 'video/');
+        $request->validate([
+            'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:30720',
+        ]);
 
-        if ($isVideo) {
-            $request->validate([
-                'photo'     => 'required|file|mimes:mp4|max:204800',
-                'thumbnail' => 'required|image|mimes:jpeg|max:4096',
-            ]);
-        } else {
-            $request->validate([
-                'photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:30720',
-            ]);
-        }
-
+        $file = $request->file('photo');
         $uuid = (string) Str::uuid();
 
         // Build a name prefix from the guest if signed in
@@ -69,41 +59,28 @@ class GalleryController extends Controller
         }
 
         $baseName = $prefix . $uuid;
-        $thumbDir = storage_path('app/public/gallery');
+
+        // Generate web-optimised thumbnail (1200px wide) and save locally
+        $thumbDir  = storage_path('app/public/gallery');
         if (!is_dir($thumbDir)) mkdir($thumbDir, 0755, true);
 
         $thumbFile = $thumbDir . '/' . $baseName . '.jpg';
-
-        if ($isVideo) {
-            // Store client-generated thumbnail locally
-            Image::read($request->file('thumbnail'))
-                ->scaleDown(width: 1200)
-                ->toJpeg(quality: 85)
-                ->save($thumbFile);
-
-            // Upload original MP4 to Dropbox
-            $dropboxPath = '/' . $baseName . '.mp4';
-            Storage::disk('dropbox')->put($dropboxPath, file_get_contents($file->getRealPath()));
-        } else {
-            // Generate web-optimised thumbnail (1200px wide) and save locally
-            Image::read($file)
-                ->scaleDown(width: 1200)
-                ->toJpeg(quality: 85)
-                ->save($thumbFile);
-
-            // Upload original to Dropbox
-            $dropboxPath = '/' . $baseName . '_original.' . $file->getClientOriginalExtension();
-            Storage::disk('dropbox')->put($dropboxPath, file_get_contents($file->getRealPath()));
-        }
+        Image::read($file)
+            ->scaleDown(width: 1200)
+            ->toJpeg(quality: 85)
+            ->save($thumbFile);
 
         $thumbPath = 'gallery/' . $baseName . '.jpg';
+
+        // Upload original to Dropbox
+        $dropboxPath = '/' . $baseName . '_original.' . $file->getClientOriginalExtension();
+        Storage::disk('dropbox')->put($dropboxPath, fopen($file->getRealPath(), 'r'));
 
         $photo = Photo::create([
             'guest_id'     => session('guest_id'),
             'dropbox_path' => $dropboxPath,
             'thumb_path'   => $thumbPath,
             'approved'     => true,
-            'is_video'     => $isVideo,
         ]);
 
         return response()->json([
@@ -111,7 +88,6 @@ class GalleryController extends Controller
             'photo' => [
                 'id'        => $photo->id,
                 'thumb_url' => $photo->thumbUrl(),
-                'is_video'  => $isVideo,
             ],
         ]);
     }
