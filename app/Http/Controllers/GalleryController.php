@@ -51,8 +51,9 @@ class GalleryController extends Controller
         $prefix  = '';
         if ($guestId) {
             $guest = Guest::find($guestId);
-            if ($guest && $guest->name) {
-                $slug   = preg_replace('/[^a-z0-9]+/', '-', strtolower($guest->name));
+            $displayName = $guest->nickname ?: $guest->name;
+            if ($guest && $displayName) {
+                $slug   = preg_replace('/[^a-z0-9]+/', '-', strtolower($displayName));
                 $prefix = trim($slug, '-') . '_';
             }
         }
