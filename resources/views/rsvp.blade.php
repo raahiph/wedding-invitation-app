@@ -18,11 +18,11 @@
 <meta property="og:site_name" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }}">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#22304A">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/32x32.png">
-<link rel="icon" type="image/png" sizes="180x180" href="/assets/img/180x180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/assets/img/192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/assets/img/512x512.png">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ config('app.url') }}/assets/img/16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ config('app.url') }}/assets/img/32x32.png">
+<link rel="icon" type="image/png" sizes="180x180" href="{{ config('app.url') }}/assets/img/180x180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ config('app.url') }}/assets/img/192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="{{ config('app.url') }}/assets/img/512x512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">

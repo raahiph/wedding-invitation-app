@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title', 'Admin') — Wedding Admin</title>
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/32x32.png">
-<link rel="icon" type="image/png" sizes="180x180" href="/assets/img/180x180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/assets/img/192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/assets/img/512x512.png">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ config('app.url') }}/assets/img/16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ config('app.url') }}/assets/img/32x32.png">
+<link rel="icon" type="image/png" sizes="180x180" href="{{ config('app.url') }}/assets/img/180x180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ config('app.url') }}/assets/img/192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="{{ config('app.url') }}/assets/img/512x512.png">
 <style>
 @font-face { font-family:'BrittanySignature'; src:url('/assets/fonts/BrittanySignature.ttf') format('truetype'); font-weight:400; font-display:swap; }
 @font-face { font-family:'Inter'; src:local('Inter'), local('Inter-Regular'); font-weight:400; font-display:swap; }
