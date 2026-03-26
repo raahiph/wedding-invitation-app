@@ -239,7 +239,7 @@ class AdminController extends Controller
             $ceremony = in_array(strtolower($data['attends_ceremony'] ?? ''), ['1', 'yes', 'true']);
             $plusOnes = max(0, min(4, (int) ($data['plus_ones'] ?? 0)));
             $sessionRaw = $data['session'] ?? '';
-            $session    = in_array($sessionRaw, ['1', '2']) ? (int) $sessionRaw : null;
+            $session    = $sessionRaw === 'S1' ? 1 : ($sessionRaw === 'S2' ? 2 : null);
 
             $guest = Guest::firstOrCreate(
                 ['mobile' => $mobile],
