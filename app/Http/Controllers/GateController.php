@@ -32,6 +32,13 @@ class GateController extends Controller
             return back()->withErrors(['mobile' => 'Your number wasn\'t found on our guest list.'])->withInput();
         }
 
+        if (!file_exists(storage_path('app/rsvp_mode'))) {
+            $rsvp = $guest->rsvp;
+            if (!$rsvp || !$rsvp->attending) {
+                return back()->withErrors(['mobile' => 'RSVPs are now closed. Only confirmed attendees can access the invitation.'])->withInput();
+            }
+        }
+
         session()->regenerate();
         session(['guest_id' => $guest->id, 'guest_name' => $guest->name]);
 
