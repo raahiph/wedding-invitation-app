@@ -79,10 +79,10 @@ class AdminController extends Controller
     {
         $request->validate(['mobile' => 'required|string']);
 
-        $mobile = Guest::normaliseMobile($request->input('mobile'));
-        $name   = substr(trim($request->input('name', '')), 0, 120);
-        $notes  = substr(trim($request->input('notes', '')), 0, 255);
-        $side   = in_array($request->input('side'), ['groom', 'bride', 'other']) ? $request->input('side') : 'other';
+        $mobile   = Guest::normaliseMobile($request->input('mobile'));
+        $nickname = substr(trim($request->input('nickname', '')), 0, 120);
+        $notes    = substr(trim($request->input('notes', '')), 0, 255);
+        $side     = in_array($request->input('side'), ['groom', 'bride', 'other']) ? $request->input('side') : 'other';
 
         if (strlen($mobile) < 7) {
             if ($request->wantsJson()) {
@@ -91,7 +91,7 @@ class AdminController extends Controller
             return back()->withErrors(['mobile' => 'Invalid mobile number.']);
         }
 
-        $created = Guest::firstOrCreate(['mobile' => $mobile], ['name' => $name, 'notes' => $notes, 'side' => $side]);
+        $created = Guest::firstOrCreate(['mobile' => $mobile], ['nickname' => $nickname, 'notes' => $notes, 'side' => $side]);
 
         $msg = $created->wasRecentlyCreated ? 'Guest added successfully.' : 'That mobile number is already on the list.';
 
@@ -104,7 +104,8 @@ class AdminController extends Controller
                     'id'               => $created->id,
                     'mobile'           => $created->mobile,
                     'name'             => $created->name ?? '',
-                    'notes'            => $created->notes ?? '',
+                    'nickname'         => $nickname,
+                    'notes'            => $notes,
                     'side'             => $created->side,
                     'attends_ceremony' => (bool) $created->attends_ceremony,
                     'session'          => $created->session,

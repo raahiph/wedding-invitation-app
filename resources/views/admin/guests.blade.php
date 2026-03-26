@@ -27,7 +27,7 @@
     <input type="hidden" name="side" value="{{ $side }}">
     <div class="form-row">
       <input class="form-input" type="tel"  name="mobile" placeholder="Mobile number (e.g. 9123456)" required>
-      <input class="form-input" type="text" name="name"   placeholder="Name (optional)">
+      <input class="form-input" type="text" name="nickname" placeholder="Nickname" required>
       <input class="form-input" type="text" name="notes"  placeholder="Notes (optional)">
       <button type="submit" class="form-btn">Add</button>
     </div>
@@ -76,7 +76,7 @@ window.GUEST_CFG = {
   currentSide:  '{{ $side }}',
 };
 </script>
-<script src="/assets/js/admin-guests.js"></script>
+<script src="/assets/js/admin-guests.js?v={{ filemtime(public_path('assets/js/admin-guests.js')) }}"></script>
 @endpush
 
 @endsection

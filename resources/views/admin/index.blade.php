@@ -35,7 +35,7 @@
     @csrf
     <div class="form-row">
       <input class="form-input" type="tel"  name="mobile" placeholder="Mobile number (e.g. 9123456)" required>
-      <input class="form-input" type="text" name="name"   placeholder="Name (optional)">
+      <input class="form-input" type="text" name="nickname" placeholder="Nickname" required>
       <input class="form-input" type="text" name="notes"  placeholder="Notes (optional)">
       <select class="form-input" name="side">
         <option value="other">Side</option>
@@ -90,7 +90,7 @@ window.GUEST_CFG = {
   currentSide:  '',
 };
 </script>
-<script src="/assets/js/admin-guests.js"></script>
+<script src="/assets/js/admin-guests.js?v={{ filemtime(public_path('assets/js/admin-guests.js')) }}"></script>
 <script>
 (function () {
   const toggle   = document.getElementById('rsvp-mode-toggle');

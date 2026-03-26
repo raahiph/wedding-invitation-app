@@ -159,7 +159,7 @@
       <td class="td-dim"></td>
       <td class="td-hi">${esc(g.mobile)}</td>
       <td class="guest-name">${esc(g.name || '—')}</td>
-      <td>—</td>
+      <td>${esc(g.nickname || '—')}</td>
       ${sideCol}
       <td><span class="badge attending-badge badge-pending">Pending</span></td>
       <td class="plus-ones">${esc(g.plus_ones ?? 0)}</td>
@@ -172,9 +172,9 @@
       <td style="white-space:nowrap">
         <button class="edit-btn"
           data-url="${esc(g.update_url)}" data-mobile="${esc(g.mobile)}"
-          data-name="${esc(g.name)}" data-notes="${esc(g.notes)}"
+          data-name="" data-notes="${esc(g.notes)}"
           data-side="${esc(g.side)}" data-attending="" data-plus="0"
-          data-nickname="" data-ceremony="0" data-session="">Edit</button>
+          data-nickname="${esc(g.nickname)}" data-ceremony="0" data-session="">Edit</button>
         <form method="POST" action="${esc(g.destroy_url)}" style="display:inline">
           <input type="hidden" name="_token" value="${esc(csrf)}">
           <input type="hidden" name="_method" value="DELETE">
