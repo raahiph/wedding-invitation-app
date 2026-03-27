@@ -21,6 +21,7 @@
 {{-- Stats --}}
 <div class="stats">
   <div class="stat"><strong id="stat-total">{{ $totalGuests }}</strong><span>Invited</span></div>
+  <div class="stat"><strong id="stat-est-headcount">{{ $estHeadcount }}</strong><span>Est. Headcount</span></div>
   <div class="stat"><strong id="stat-attending">{{ $totalAttending }}</strong><span>Attending</span></div>
   <div class="stat"><strong id="stat-heads">{{ $totalHeads }}</strong><span>Total Heads</span></div>
   <div class="stat"><strong id="stat-pending">{{ $totalGuests - $guests->filter(fn($g) => $g->rsvp)->count() }}</strong><span>Pending RSVP</span></div>

@@ -54,12 +54,13 @@ class AdminController extends Controller
                                  ->sum(fn($g) => 1 + $g->plus_ones);
         $groomCount     = $guests->where('side', 'groom')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
         $brideCount     = $guests->where('side', 'bride')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
-        $rsvpSentCount  = $guests->where('rsvp_sent', true)->count();
+        $rsvpSentCount   = $guests->where('rsvp_sent', true)->count();
         $inviteSentCount = $guests->where('invitation_sent', true)->count();
+        $estHeadcount    = $guests->sum(fn($g) => 1 + $g->plus_ones);
 
         $rsvpMode = file_exists(storage_path('app/rsvp_mode'));
 
-        return view('admin.index', compact('guests', 'totalGuests', 'totalAttending', 'totalHeads', 'groomCount', 'brideCount', 'rsvpSentCount', 'inviteSentCount', 'rsvpMode'));
+        return view('admin.index', compact('guests', 'totalGuests', 'totalAttending', 'totalHeads', 'groomCount', 'brideCount', 'rsvpSentCount', 'inviteSentCount', 'estHeadcount', 'rsvpMode'));
     }
 
     public function toggleCountdown(Request $request)
@@ -218,6 +219,7 @@ class AdminController extends Controller
             'bride'            => $guests->where('side', 'bride')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
             'rsvp_sent'        => $guests->where('rsvp_sent', true)->count(),
             'invitation_sent'  => $guests->where('invitation_sent', true)->count(),
+            'est_headcount'    => $guests->sum(fn($g) => 1 + $g->plus_ones),
         ]);
     }
 

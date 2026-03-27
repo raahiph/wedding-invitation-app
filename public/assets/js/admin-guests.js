@@ -40,6 +40,7 @@
           document.getElementById('stat-pending').textContent   = d.pending;
           if (document.getElementById('stat-groom')) document.getElementById('stat-groom').textContent = d.groom;
           if (document.getElementById('stat-bride')) document.getElementById('stat-bride').textContent = d.bride;
+          if (document.getElementById('stat-est-headcount'))    document.getElementById('stat-est-headcount').textContent   = d.est_headcount;
           if (document.getElementById('stat-rsvp-sent'))       document.getElementById('stat-rsvp-sent').textContent       = d.rsvp_sent + ' / ' + d.total;
           if (document.getElementById('stat-invitation-sent')) document.getElementById('stat-invitation-sent').textContent = d.invitation_sent + ' / ' + d.attending;
         }).catch(() => {});
