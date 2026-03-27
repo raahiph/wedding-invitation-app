@@ -16,6 +16,17 @@
     <option value="other">Other</option>
   </select>
   @endif
+  <select class="form-input tbl-select" id="guest-rsvp-sent">
+    <option value="">All (RSVP link)</option>
+    <option value="1">RSVP link sent</option>
+    <option value="0">RSVP link not sent</option>
+  </select>
+  <select class="form-input tbl-select" id="guest-invitation-sent">
+    <option value="">All (invitation)</option>
+    <option value="1">Invitation sent</option>
+    <option value="0">Invitation not sent</option>
+  </select>
+  <button class="tbl-clear" id="filter-clear" style="display:none">Clear filters</button>
   <span class="tbl-count" id="guest-count"></span>
 </div>
 
@@ -40,6 +51,8 @@
         <th>Ceremony</th>
         <th>Session</th>
         <th>Submitted</th>
+        <th>RSVP Sent</th>
+        <th>Invite Sent</th>
         <th></th>
       </tr>
     </thead>
@@ -50,7 +63,7 @@
         $sideLabel = $guest->side === 'groom' ? $wedding['groom'] : ($guest->side === 'bride' ? $wedding['bride'] : 'Other');
         $sideCls   = 'side-' . $guest->side;
       @endphp
-      <tr data-status="{{ $attStatus }}" data-side="{{ $guest->side }}" data-id="{{ $guest->id }}">
+      <tr data-status="{{ $attStatus }}" data-side="{{ $guest->side }}" data-id="{{ $guest->id }}" data-rsvp-sent="{{ $guest->rsvp_sent ? '1' : '0' }}" data-invitation-sent="{{ $guest->invitation_sent ? '1' : '0' }}">
         <td style="padding-right:0"><input type="checkbox" class="row-cb" value="{{ $guest->id }}"></td>
         <td class="td-dim">{{ $i + 1 }}</td>
         <td class="td-hi">{{ $guest->mobile }}</td>
@@ -81,6 +94,18 @@
           @endif
         </td>
         <td class="td-dim">{{ $guest->rsvp ? $guest->rsvp->updated_at->format('d M, H:i') : '—' }}</td>
+        <td>
+          <form method="POST" action="{{ route('admin.guests.rsvp-sent', $guest) }}">
+            @csrf
+            <button type="submit" class="rsvp-sent-btn {{ $guest->rsvp_sent ? 'ceremony-yes' : 'ceremony-no' }}">{{ $guest->rsvp_sent ? 'Yes' : 'No' }}</button>
+          </form>
+        </td>
+        <td>
+          <form method="POST" action="{{ route('admin.guests.invitation-sent', $guest) }}">
+            @csrf
+            <button type="submit" class="invitation-sent-btn {{ $guest->invitation_sent ? 'ceremony-yes' : 'ceremony-no' }}">{{ $guest->invitation_sent ? 'Yes' : 'No' }}</button>
+          </form>
+        </td>
         <td style="white-space:nowrap">
           <button class="edit-btn"
             data-url="{{ route('admin.guests.update', $guest) }}"
@@ -101,7 +126,7 @@
       </tr>
       @empty
       <tr>
-        <td colspan="{{ $showSide ? 12 : 11 }}" style="text-align:center;color:#8FA3B8;padding:32px;">
+        <td colspan="{{ $showSide ? 14 : 13 }}" style="text-align:center;color:#8FA3B8;padding:32px;">
           {{ $emptyMessage ?? 'No guests yet.' }}
         </td>
       </tr>

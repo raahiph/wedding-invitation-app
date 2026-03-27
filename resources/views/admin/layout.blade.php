@@ -164,6 +164,8 @@ input:checked + .toggle-slider::before { transform:translateX(22px); }
 .tbl-search { flex:1; min-width:180px; max-width:320px; }
 .tbl-select { flex:0 0 auto; width:auto; min-width:150px; cursor:pointer; }
 .tbl-count { font-size:11px; color:#8FA3B8; font-weight:400; margin-left:auto; white-space:nowrap; }
+.tbl-clear { background:none; border:none; font-family:'Montserrat',sans-serif; font-size:10px; font-weight:500; letter-spacing:0.05em; color:#8FA3B8; cursor:pointer; padding:0; text-decoration:underline; white-space:nowrap; }
+.tbl-clear:hover { color:var(--navy); }
 
 /* ─── Table ──────────────────────────────────────── */
 .tbl-wrap { overflow-x:auto; border-radius:8px; border:1px solid #DDE2E8; background:#FFFFFF; }
@@ -190,12 +192,12 @@ tbody tr:hover td { background:#F7F9FB; }
 .side-other    { background:#F3F4F6; color:#6B7280; }
 
 /* ─── Ceremony btn ───────────────────────────────── */
-.ceremony-btn {
+.ceremony-btn, .rsvp-sent-btn, .invitation-sent-btn {
   background:none; border:1px solid; font-family:'Montserrat',sans-serif;
   font-size:10px; font-weight:500; padding:3px 10px; border-radius:20px;
   cursor:pointer; transition:opacity 0.15s;
 }
-.ceremony-btn:hover { opacity:0.7; }
+.ceremony-btn:hover, .rsvp-sent-btn:hover, .invitation-sent-btn:hover { opacity:0.7; }
 .ceremony-yes { color:#2E7D52; border-color:#2E7D52; background:#E6F5EC; }
 .ceremony-no  { color:#6B7E96; border-color:#C8D3DE; background:#EEF2F7; }
 

@@ -40,6 +40,8 @@
           document.getElementById('stat-pending').textContent   = d.pending;
           if (document.getElementById('stat-groom')) document.getElementById('stat-groom').textContent = d.groom;
           if (document.getElementById('stat-bride')) document.getElementById('stat-bride').textContent = d.bride;
+          if (document.getElementById('stat-rsvp-sent'))       document.getElementById('stat-rsvp-sent').textContent       = d.rsvp_sent + ' / ' + d.total;
+          if (document.getElementById('stat-invitation-sent')) document.getElementById('stat-invitation-sent').textContent = d.invitation_sent + ' / ' + d.attending;
         }).catch(() => {});
     } else {
       const rows     = [...tbody.querySelectorAll('tr[data-status]')];
@@ -59,32 +61,59 @@
   if (CFG.statsMode === 'server') setInterval(refreshStats, 15000);
 
   // ── Table filter ──────────────────────────────────
-  const search    = document.getElementById('guest-search');
-  const statusSel = document.getElementById('guest-status');
-  const sideSel   = document.getElementById('guest-side'); // null on guests page
-  const tbody     = document.getElementById('guest-tbody');
-  const counter   = document.getElementById('guest-count');
+  const search          = document.getElementById('guest-search');
+  const statusSel       = document.getElementById('guest-status');
+  const sideSel         = document.getElementById('guest-side'); // null on guests page
+  const rsvpSentSel     = document.getElementById('guest-rsvp-sent');
+  const inviteSentSel   = document.getElementById('guest-invitation-sent');
+  const filterClear     = document.getElementById('filter-clear');
+  const tbody           = document.getElementById('guest-tbody');
+  const counter         = document.getElementById('guest-count');
+
+  function isFiltered() {
+    return search.value.trim() !== ''
+      || statusSel.value !== ''
+      || (sideSel && sideSel.value !== '')
+      || rsvpSentSel.value !== ''
+      || inviteSentSel.value !== '';
+  }
 
   function filter() {
-    const q  = search.value.trim().toLowerCase();
-    const s  = statusSel.value;
-    const sd = sideSel ? sideSel.value : '';
+    const q   = search.value.trim().toLowerCase();
+    const s   = statusSel.value;
+    const sd  = sideSel ? sideSel.value : '';
+    const rs  = rsvpSentSel.value;
+    const ins = inviteSentSel.value;
     const rows = tbody.querySelectorAll('tr[data-status]');
     let visible = 0;
     rows.forEach(row => {
-      const show = (!q  || row.textContent.toLowerCase().includes(q))
-                && (!s  || row.dataset.status === s)
-                && (!sd || row.dataset.side   === sd);
+      const show = (!q   || row.textContent.toLowerCase().includes(q))
+                && (!s   || row.dataset.status         === s)
+                && (!sd  || row.dataset.side           === sd)
+                && (!rs  || row.dataset.rsvpSent       === rs)
+                && (!ins || row.dataset.invitationSent === ins);
       row.style.display = show ? '' : 'none';
       if (show) visible++;
     });
     const total = rows.length;
     counter.textContent = visible === total ? total + ' guests' : visible + ' of ' + total;
+    filterClear.style.display = isFiltered() ? '' : 'none';
   }
+
+  filterClear.addEventListener('click', function () {
+    search.value       = '';
+    statusSel.value    = '';
+    if (sideSel) sideSel.value = '';
+    rsvpSentSel.value  = '';
+    inviteSentSel.value = '';
+    filter();
+  });
 
   search.addEventListener('input', filter);
   statusSel.addEventListener('change', filter);
   if (sideSel) sideSel.addEventListener('change', filter);
+  rsvpSentSel.addEventListener('change', filter);
+  inviteSentSel.addEventListener('change', filter);
   filter();
 
   // ── Bulk selection ────────────────────────────────
@@ -154,7 +183,7 @@
     const sideCol = CFG.hasSideCol
       ? `<td><span class="badge side-${esc(g.side)} guest-side">${esc(sLabel)}</span></td>`
       : '';
-    return `<tr data-status="pending" data-side="${esc(g.side)}" data-id="${esc(g.id)}">
+    return `<tr data-status="pending" data-side="${esc(g.side)}" data-id="${esc(g.id)}" data-rsvp-sent="0" data-invitation-sent="0">
       <td style="padding-right:0"><input type="checkbox" class="row-cb" value="${esc(g.id)}"></td>
       <td class="td-dim"></td>
       <td class="td-hi">${esc(g.mobile)}</td>
@@ -169,6 +198,14 @@
       </form></td>
       <td><span class="td-dim">—</span></td>
       <td class="td-dim">—</td>
+      <td><form method="POST" action="${esc(g.rsvp_sent_url)}">
+        <input type="hidden" name="_token" value="${esc(csrf)}">
+        <button type="submit" class="rsvp-sent-btn ceremony-no">No</button>
+      </form></td>
+      <td><form method="POST" action="${esc(g.invitation_sent_url)}">
+        <input type="hidden" name="_token" value="${esc(csrf)}">
+        <button type="submit" class="invitation-sent-btn ceremony-no">No</button>
+      </form></td>
       <td style="white-space:nowrap">
         <button class="edit-btn"
           data-url="${esc(g.update_url)}" data-mobile="${esc(g.mobile)}"
@@ -227,6 +264,34 @@
           const sessionTd = row.querySelectorAll('td')[CFG.sessionCol];
           if (sessionTd && on) sessionTd.innerHTML = '<span class="td-dim">—</span>';
         });
+      return;
+    }
+
+    if (form.querySelector('.rsvp-sent-btn')) {
+      e.preventDefault();
+      const btn = form.querySelector('.rsvp-sent-btn');
+      fetch(form.action, { method: 'POST', headers: HDRS, body: new URLSearchParams(new FormData(form)) })
+        .then(r => r.json())
+        .then(d => {
+          if (!d.ok) return;
+          btn.className   = 'rsvp-sent-btn ' + (d.rsvp_sent ? 'ceremony-yes' : 'ceremony-no');
+          btn.textContent = d.rsvp_sent ? 'Yes' : 'No';
+          btn.closest('tr').dataset.rsvpSent = d.rsvp_sent ? '1' : '0';
+        }).catch(() => {});
+      return;
+    }
+
+    if (form.querySelector('.invitation-sent-btn')) {
+      e.preventDefault();
+      const btn = form.querySelector('.invitation-sent-btn');
+      fetch(form.action, { method: 'POST', headers: HDRS, body: new URLSearchParams(new FormData(form)) })
+        .then(r => r.json())
+        .then(d => {
+          if (!d.ok) return;
+          btn.className   = 'invitation-sent-btn ' + (d.invitation_sent ? 'ceremony-yes' : 'ceremony-no');
+          btn.textContent = d.invitation_sent ? 'Yes' : 'No';
+          btn.closest('tr').dataset.invitationSent = d.invitation_sent ? '1' : '0';
+        }).catch(() => {});
       return;
     }
 

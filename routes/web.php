@@ -110,6 +110,8 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::post('/countdown-toggle', [AdminController::class, 'toggleCountdown'])->name('countdown.toggle');
     Route::post('/guests/{guest}/update', [AdminController::class, 'adminUpdateGuest'])->name('guests.update');
     Route::post('/guests/{guest}/ceremony', [AdminController::class, 'toggleCeremony'])->name('guests.ceremony');
+    Route::post('/guests/{guest}/rsvp-sent', [AdminController::class, 'toggleRsvpSent'])->name('guests.rsvp-sent');
+    Route::post('/guests/{guest}/invitation-sent', [AdminController::class, 'toggleInvitationSent'])->name('guests.invitation-sent');
     Route::get('/guests/groom', [AdminController::class, 'guestList'])->defaults('side', 'groom')->name('guests.groom');
     Route::get('/guests/bride', [AdminController::class, 'guestList'])->defaults('side', 'bride')->name('guests.bride');
     Route::get('/stats', [AdminController::class, 'stats'])->name('stats');

@@ -54,10 +54,12 @@ class AdminController extends Controller
                                  ->sum(fn($g) => 1 + $g->plus_ones);
         $groomCount     = $guests->where('side', 'groom')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
         $brideCount     = $guests->where('side', 'bride')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
+        $rsvpSentCount  = $guests->where('rsvp_sent', true)->count();
+        $inviteSentCount = $guests->where('invitation_sent', true)->count();
 
         $rsvpMode = file_exists(storage_path('app/rsvp_mode'));
 
-        return view('admin.index', compact('guests', 'totalGuests', 'totalAttending', 'totalHeads', 'groomCount', 'brideCount', 'rsvpMode'));
+        return view('admin.index', compact('guests', 'totalGuests', 'totalAttending', 'totalHeads', 'groomCount', 'brideCount', 'rsvpSentCount', 'inviteSentCount', 'rsvpMode'));
     }
 
     public function toggleCountdown(Request $request)
@@ -110,9 +112,11 @@ class AdminController extends Controller
                     'attends_ceremony' => (bool) $created->attends_ceremony,
                     'session'          => $created->session,
                     'plus_ones'        => (int) $created->plus_ones,
-                    'ceremony_url'     => route('admin.guests.ceremony', $created),
-                    'update_url'       => route('admin.guests.update', $created),
-                    'destroy_url'      => route('admin.guests.destroy', $created),
+                    'ceremony_url'      => route('admin.guests.ceremony', $created),
+                    'rsvp_sent_url'     => route('admin.guests.rsvp-sent', $created),
+                    'invitation_sent_url' => route('admin.guests.invitation-sent', $created),
+                    'update_url'        => route('admin.guests.update', $created),
+                    'destroy_url'       => route('admin.guests.destroy', $created),
                 ],
             ]);
         }
@@ -173,6 +177,18 @@ class AdminController extends Controller
         return back();
     }
 
+    public function toggleRsvpSent(Guest $guest)
+    {
+        $guest->update(['rsvp_sent' => !$guest->rsvp_sent]);
+        return response()->json(['ok' => true, 'rsvp_sent' => (bool) $guest->rsvp_sent]);
+    }
+
+    public function toggleInvitationSent(Guest $guest)
+    {
+        $guest->update(['invitation_sent' => !$guest->invitation_sent]);
+        return response()->json(['ok' => true, 'invitation_sent' => (bool) $guest->invitation_sent]);
+    }
+
     public function guestList(string $side)
     {
         $guests = Guest::with('rsvp')->where('side', $side)->latest()->get();
@@ -189,14 +205,19 @@ class AdminController extends Controller
     {
         $guests = Guest::with('rsvp')->get();
 
+        $total     = $guests->count();
+        $attending = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
+
         return response()->json([
-            'total'     => $guests->count(),
-            'attending' => $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
-            'heads'     => $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)
-                                  ->sum(fn($g) => 1 + $g->plus_ones),
-            'pending'   => $guests->filter(fn($g) => !$g->rsvp)->count(),
-            'groom'     => $guests->where('side', 'groom')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
-            'bride'     => $guests->where('side', 'bride')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
+            'total'            => $total,
+            'attending'        => $attending,
+            'heads'            => $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)
+                                         ->sum(fn($g) => 1 + $g->plus_ones),
+            'pending'          => $guests->filter(fn($g) => !$g->rsvp)->count(),
+            'groom'            => $guests->where('side', 'groom')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
+            'bride'            => $guests->where('side', 'bride')->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count(),
+            'rsvp_sent'        => $guests->where('rsvp_sent', true)->count(),
+            'invitation_sent'  => $guests->where('invitation_sent', true)->count(),
         ]);
     }
 

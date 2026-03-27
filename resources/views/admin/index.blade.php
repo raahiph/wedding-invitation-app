@@ -26,6 +26,8 @@
   <div class="stat"><strong id="stat-pending">{{ $totalGuests - $guests->filter(fn($g) => $g->rsvp)->count() }}</strong><span>Pending RSVP</span></div>
   <div class="stat stat-groom"><strong id="stat-groom">{{ $groomCount }}</strong><span>{{ $wedding['groom'] }}'s Attending</span></div>
   <div class="stat stat-bride"><strong id="stat-bride">{{ $brideCount }}</strong><span>{{ $wedding['bride'] }}'s Attending</span></div>
+  <div class="stat"><strong id="stat-rsvp-sent">{{ $rsvpSentCount }} / {{ $totalGuests }}</strong><span>RSVP Link Sent</span></div>
+  <div class="stat"><strong id="stat-invitation-sent">{{ $inviteSentCount }} / {{ $totalAttending }}</strong><span>Invite Sent</span></div>
 </div>
 
 {{-- Add Guest --}}

@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Guest extends Model
 {
-    protected $fillable = ['mobile', 'name', 'nickname', 'notes', 'side', 'attends_ceremony', 'session', 'plus_ones'];
+    protected $fillable = ['mobile', 'name', 'nickname', 'notes', 'side', 'attends_ceremony', 'session', 'plus_ones', 'rsvp_sent', 'invitation_sent'];
 
-    protected $casts = ['attends_ceremony' => 'boolean'];
+    protected $casts = ['attends_ceremony' => 'boolean', 'rsvp_sent' => 'boolean', 'invitation_sent' => 'boolean'];
 
     public function rsvp()
     {
