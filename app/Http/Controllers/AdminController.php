@@ -194,12 +194,15 @@ class AdminController extends Controller
     {
         $guests = Guest::with('rsvp')->where('side', $side)->latest()->get();
 
-        $totalGuests    = $guests->count();
-        $totalAttending = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
-        $totalHeads     = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)
-                                 ->sum(fn($g) => 1 + $g->plus_ones);
+        $totalGuests     = $guests->count();
+        $totalAttending  = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
+        $totalHeads      = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)
+                                  ->sum(fn($g) => 1 + $g->plus_ones);
+        $estHeadcount    = $guests->sum(fn($g) => 1 + $g->plus_ones);
+        $rsvpSentCount   = $guests->where('rsvp_sent', true)->count();
+        $inviteSentCount = $guests->where('invitation_sent', true)->count();
 
-        return view('admin.guests', compact('guests', 'side', 'totalGuests', 'totalAttending', 'totalHeads'));
+        return view('admin.guests', compact('guests', 'side', 'totalGuests', 'totalAttending', 'totalHeads', 'estHeadcount', 'rsvpSentCount', 'inviteSentCount'));
     }
 
     public function stats()
