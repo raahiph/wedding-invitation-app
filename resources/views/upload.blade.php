@@ -8,6 +8,8 @@
 <meta name="description" content="Share your photos from the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — {{ $wedding['date'] }}, {{ $wedding['city'] }}.">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#22304A">
+<meta name="color-scheme" content="only light">
+<meta name="darkreader-lock">
 <meta name="twitter:card" content="summary_large_image">
 <meta property="og:title" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — Share a Photo">
 <meta property="og:description" content="Upload your photos from our wedding day — {{ $wedding['date'] }}, {{ $wedding['city'] }}.">
@@ -50,6 +52,8 @@
   font-weight:500; font-style:normal; font-display:swap;
 }
 
+html { color-scheme:only light; background-color:#22304A !important; }
+@media (prefers-color-scheme:dark) { html { filter:none !important; background-color:#22304A !important; } }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 :root {

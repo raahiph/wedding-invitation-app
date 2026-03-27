@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="color-scheme" content="only light">
+<meta name="darkreader-lock">
 <title>@yield('title', 'Admin') — Wedding Admin</title>
 <link rel="icon" type="image/png" sizes="16x16" href="{{ config('app.url') }}/assets/img/16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="{{ config('app.url') }}/assets/img/32x32.png">
@@ -18,6 +20,8 @@
 @font-face { font-family:'Montserrat'; src:url('/assets/fonts/Montserrat-Medium.ttf') format('truetype'); font-weight:500; font-display:swap; }
 @font-face { font-family:'Montserrat'; src:url('/assets/fonts/Montserrat-SemiBold.ttf') format('truetype'); font-weight:600; font-display:swap; }
 
+html { color-scheme:only light; background-color:#F0F2F5 !important; }
+@media (prefers-color-scheme:dark) { html { filter:none !important; background-color:#F0F2F5 !important; } }
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 html, body { height:100%; }
 body { font-family:'Montserrat',system-ui,sans-serif; background:#F0F2F5; color:#1A2332; font-size:13px; display:flex; min-height:100vh; }

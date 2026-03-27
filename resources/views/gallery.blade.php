@@ -8,6 +8,8 @@
 <meta name="description" content="Browse wedding photos shared by guests of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — {{ $wedding['date'] }}, {{ $wedding['city'] }}.">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#22304A">
+<meta name="color-scheme" content="only light">
+<meta name="darkreader-lock">
 <meta name="twitter:card" content="summary_large_image">
 <meta property="og:title" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — Our Gallery">
 <meta property="og:description" content="Browse wedding photos shared by guests — {{ $wedding['date'] }}">
@@ -64,7 +66,8 @@
   --border:    rgba(34,48,74,0.12);
 }
 
-html { scroll-behavior:smooth; }
+html { scroll-behavior:smooth; color-scheme:only light; background-color:#F4F7FA !important; }
+@media (prefers-color-scheme:dark) { html { filter:none !important; background-color:#F4F7FA !important; } }
 body {
   font-family:'Montserrat',sans-serif;
   background:var(--cream);

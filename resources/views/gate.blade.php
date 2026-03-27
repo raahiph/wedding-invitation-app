@@ -17,6 +17,8 @@
 <meta property="og:site_name" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }}">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#22304A">
+<meta name="color-scheme" content="only light">
+<meta name="darkreader-lock">
 <link rel="icon" type="image/png" sizes="16x16" href="{{ config('app.url') }}/assets/img/16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="{{ config('app.url') }}/assets/img/32x32.png">
 <link rel="icon" type="image/png" sizes="180x180" href="{{ config('app.url') }}/assets/img/180x180.png">
@@ -44,6 +46,8 @@
   font-weight:400; font-style:normal; font-display:swap;
 }
 
+html { color-scheme:only light; background-color:#22304A !important; }
+@media (prefers-color-scheme:dark) { html { filter:none !important; background-color:#22304A !important; } }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 body {
