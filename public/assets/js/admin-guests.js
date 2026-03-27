@@ -116,6 +116,42 @@
   inviteSentSel.addEventListener('change', filter);
   filter();
 
+  // ── Column sort ───────────────────────────────────
+  let sortCol = -1, sortAsc = true;
+
+  function cellValue(row, colIndex, type) {
+    const text = (row.cells[colIndex]?.textContent ?? '').trim();
+    if (type === 'num')    return parseInt(text) || 0;
+    if (type === 'date')   return text === '—' ? Infinity : new Date(text).getTime() || Infinity;
+    if (type === 'status') return text === 'Yes' ? 0 : text === 'Pending' ? 1 : 2;
+    if (type === 'yesno')  return text === 'Yes' ? 0 : 1;
+    return text.toLowerCase();
+  }
+
+  document.getElementById('guest-table').tHead.addEventListener('click', function (e) {
+    const th = e.target.closest('th[data-sort]');
+    if (!th) return;
+    const colIndex = th.cellIndex;
+    const type     = th.dataset.sort;
+    if (sortCol === colIndex) { sortAsc = !sortAsc; } else { sortCol = colIndex; sortAsc = true; }
+
+    // Update header indicators
+    this.querySelectorAll('th[data-sort]').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+    th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+
+    // Sort all rows (preserves display:none from filter)
+    const rows = [...tbody.querySelectorAll('tr[data-status]')];
+    rows.sort((a, b) => {
+      const av = cellValue(a, colIndex, type);
+      const bv = cellValue(b, colIndex, type);
+      if (av < bv) return sortAsc ? -1 : 1;
+      if (av > bv) return sortAsc ?  1 : -1;
+      return 0;
+    });
+    rows.forEach(r => tbody.appendChild(r));
+    renumber();
+  });
+
   // ── Bulk selection ────────────────────────────────
   const selectAll     = document.getElementById('select-all');
   const bulkBar       = document.getElementById('bulk-bar');

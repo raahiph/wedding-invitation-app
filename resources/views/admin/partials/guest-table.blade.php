@@ -41,18 +41,18 @@
     <thead>
       <tr>
         <th style="width:36px;padding-right:0"><input type="checkbox" id="select-all" class="row-cb" title="Select all"></th>
-        <th>#</th>
-        <th>Mobile</th>
-        <th>Name</th>
-        <th>Nickname</th>
-        @if($showSide)<th>Side</th>@endif
-        <th>Attending</th>
-        <th>+Guests</th>
-        <th>Ceremony</th>
-        <th>Session</th>
-        <th>Submitted</th>
-        <th>RSVP Sent</th>
-        <th>Invite Sent</th>
+        <th data-sort="num">#</th>
+        <th data-sort="text">Mobile</th>
+        <th data-sort="text">Name</th>
+        <th data-sort="text">Nickname</th>
+        @if($showSide)<th data-sort="text">Side</th>@endif
+        <th data-sort="status">Attending</th>
+        <th data-sort="num">+Guests</th>
+        <th data-sort="yesno">Ceremony</th>
+        <th data-sort="text">Session</th>
+        <th data-sort="date">Submitted</th>
+        <th data-sort="yesno">RSVP Sent</th>
+        <th data-sort="yesno">Invite Sent</th>
         <th></th>
       </tr>
     </thead>

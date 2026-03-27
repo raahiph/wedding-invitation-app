@@ -166,6 +166,11 @@ input:checked + .toggle-slider::before { transform:translateX(22px); }
 .tbl-count { font-size:11px; color:#8FA3B8; font-weight:400; margin-left:auto; white-space:nowrap; }
 .tbl-clear { background:none; border:none; font-family:'Montserrat',sans-serif; font-size:10px; font-weight:500; letter-spacing:0.05em; color:#8FA3B8; cursor:pointer; padding:0; text-decoration:underline; white-space:nowrap; }
 .tbl-clear:hover { color:var(--navy); }
+th[data-sort] { cursor:pointer; user-select:none; white-space:nowrap; }
+th[data-sort]:hover { color:var(--navy); }
+th[data-sort]::after { content:''; margin-left:5px; opacity:0.3; font-size:9px; }
+th[data-sort].sort-asc::after  { content:'▲'; opacity:1; }
+th[data-sort].sort-desc::after { content:'▼'; opacity:1; }
 
 /* ─── Table ──────────────────────────────────────── */
 .tbl-wrap { overflow-x:auto; border-radius:8px; border:1px solid #DDE2E8; background:#FFFFFF; }
