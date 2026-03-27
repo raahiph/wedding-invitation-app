@@ -484,7 +484,7 @@ body::before {
                  {{ isset($rsvp) && !$rsvp->attending ? 'checked' : '' }}>
           <label for="att-no">
             <span class="radio-icon"><i class="fa-solid fa-heart-crack"></i></span>
-            <span class="radio-title">Regretfully declines</span>
+            <span class="radio-title">Will celebrate from afar</span>
             <span class="radio-sub">Unable to attend</span>
           </label>
         </div>
