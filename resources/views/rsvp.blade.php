@@ -231,16 +231,61 @@ body::before {
 
 .hero-scroll {
   position:absolute; bottom:36px; left:0; right:0; z-index:4;
-  display:flex; flex-direction:column; align-items:center; gap:10px;
-  animation:fadeSlideUp 1s ease 2.5s both;
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  background:none; border:none; padding:0; cursor:pointer;
+  animation:fadeSlideUp 1s ease 2.5s both, scrollBounce 1.8s ease-in-out 3.5s infinite;
 }
-.hero-scroll span { font-size:9px; letter-spacing:0.45em; text-transform:uppercase; color:rgba(255,255,255,0.7); }
-.hero-scroll-line {
-  width:3px; height:52px;
-  background:linear-gradient(to bottom, rgba(255,255,255,0.7), transparent);
-  animation:scrollPulse 2.5s ease-in-out infinite;
+.hero-scroll-mouse {
+  width:34px; height:54px;
+  border:2.5px solid rgba(255,255,255,0.8);
+  border-radius:17px;
+  display:flex; justify-content:center; padding-top:8px;
+  animation:mousePulse 1.8s ease-in-out 3.5s infinite;
 }
-@keyframes scrollPulse { 0%,100%{opacity:0.25} 50%{opacity:0.9} }
+.hero-scroll-dot {
+  width:7px; height:7px;
+  background:rgba(255,255,255,0.95);
+  border-radius:50%;
+  animation:mouseDot 1.8s ease-in-out 3.5s infinite;
+}
+.hero-scroll-chevrons {
+  display:flex; flex-direction:column; align-items:center; gap:0;
+}
+.hero-scroll-chevrons span {
+  display:block;
+  width:16px; height:16px;
+  border-right:2.5px solid rgba(255,255,255,0.9);
+  border-bottom:2.5px solid rgba(255,255,255,0.9);
+  transform:rotate(45deg);
+  margin-top:-7px;
+  animation:chevronPop 1.8s ease-in-out 3.5s infinite;
+}
+.hero-scroll-chevrons span:nth-child(1) { animation-delay:3.5s; }
+.hero-scroll-chevrons span:nth-child(2) { animation-delay:3.65s; }
+.hero-scroll-chevrons span:nth-child(3) { animation-delay:3.8s; }
+@keyframes scrollBounce {
+  0%,100% { transform:translateY(0); }
+  40%     { transform:translateY(7px); }
+  55%     { transform:translateY(-2px); }
+  70%     { transform:translateY(4px); }
+  85%     { transform:translateY(0); }
+}
+@keyframes mousePulse {
+  0%,100% { border-color:rgba(255,255,255,0.8); box-shadow:none; }
+  40%     { border-color:rgba(255,255,255,1);   box-shadow:0 0 10px rgba(255,255,255,0.3); }
+}
+@keyframes mouseDot {
+  0%   { transform:translateY(0);    opacity:1; }
+  50%  { transform:translateY(13px); opacity:0; }
+  51%  { transform:translateY(0);    opacity:0; }
+  70%  { opacity:1; }
+  100% { opacity:1; }
+}
+@keyframes chevronPop {
+  0%,100% { opacity:0.2; transform:rotate(45deg) scale(1); }
+  40%     { opacity:1;   transform:rotate(45deg) scale(1.25); }
+  70%     { opacity:0.5; transform:rotate(45deg) scale(1); }
+}
 
 /* ── RSVP section ──────────────────────────────── */
 .rsvp-section {
@@ -444,10 +489,16 @@ body::before {
     </div>
   </div>
 
-  <div class="hero-scroll">
-    <div class="hero-scroll-line"></div>
-    <span>RSVP below</span>
-  </div>
+  <button class="hero-scroll" aria-label="Scroll to RSVP" onclick="document.querySelector('.rsvp-section').scrollIntoView({behavior:'smooth'})">
+    <div class="hero-scroll-mouse">
+      <div class="hero-scroll-dot"></div>
+    </div>
+    <div class="hero-scroll-chevrons">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </button>
 </section>
 
 <!-- ══════════════ RSVP ══════════════ -->
