@@ -13,13 +13,15 @@ class GalleryController extends Controller
 {
     public function show()
     {
-        $photos = Photo::where('approved', true)->latest()->get();
-        return view('gallery', compact('photos'));
+        $photos          = Photo::where('approved', true)->latest()->get();
+        $fileRequestUrl  = \App\Models\Setting::find('dropbox_file_request_url')?->value;
+        return view('gallery', compact('photos', 'fileRequestUrl'));
     }
 
     public function uploadPage()
     {
-        return view('upload');
+        $fileRequestUrl = \App\Models\Setting::find('dropbox_file_request_url')?->value;
+        return view('upload', compact('fileRequestUrl'));
     }
 
     public function photos()

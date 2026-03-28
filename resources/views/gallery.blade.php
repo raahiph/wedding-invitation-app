@@ -245,11 +245,18 @@ body::before {
 </header>
 
 <div class="gl-upload-bar">
-  <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
-  <button class="gl-upload-btn" id="upload-btn" onclick="document.getElementById('photo-input').click()">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    Share Photos
-  </button>
+  @if($fileRequestUrl)
+    <a class="gl-upload-btn" href="{{ $fileRequestUrl }}" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Share Photos
+    </a>
+  @else
+    <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
+    <button class="gl-upload-btn" id="upload-btn" onclick="document.getElementById('photo-input').click()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Share Photos
+    </button>
+  @endif
 </div>
 <div class="gl-queue" id="gl-queue">
   <ul class="gl-queue-list" id="gl-queue-list"></ul>

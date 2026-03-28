@@ -165,6 +165,14 @@ input[type=file] { display:none; }
   transition:background 0.2s, border-color 0.2s;
 }
 .up-more-btn:hover { background:rgba(34,48,74,0.04); border-color:var(--navy); }
+.up-dropbox-btn {
+  display:inline-flex; align-items:center; gap:10px; margin-top:8px;
+  padding:14px 36px; background:var(--navy); color:#fff; text-decoration:none;
+  font-family:'Montserrat',sans-serif; font-size:11px; font-weight:400;
+  letter-spacing:0.3em; text-transform:uppercase;
+  transition:background 0.2s;
+}
+.up-dropbox-btn:hover { background:#1A2333; }
 
 @media(max-width:480px) { .up-card { padding:36px 24px 32px; } }
 
@@ -188,6 +196,13 @@ input[type=file] { display:none; }
   <div class="up-rule"></div>
   <p class="up-label">Share your photos from our day</p>
 
+@if($fileRequestUrl)
+  <a class="up-dropbox-btn" href="{{ $fileRequestUrl }}" target="_blank" rel="noopener">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Upload Photos
+  </a>
+  <p class="up-zone-hint" style="margin-top:14px;text-align:center;">Opens Dropbox — no account needed</p>
+@else
   <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple>
 
   <div class="up-zone" id="up-zone" role="button" tabindex="0" aria-label="Choose photos to upload">
@@ -212,6 +227,7 @@ input[type=file] { display:none; }
     <p class="up-done-text">Photos shared — thank you!</p>
     <button class="up-more-btn" id="up-more-btn">Share more</button>
   </div>
+@endif
 </div>
 
 <a href="{{ route('gallery') }}" class="up-gallery-link">

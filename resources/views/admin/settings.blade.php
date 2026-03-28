@@ -229,6 +229,18 @@
     </div>
   </div>
 
+  {{-- Gallery --}}
+  <div class="card">
+    <p class="card-title">Gallery</p>
+    <div class="s-field">
+      <label>Dropbox File Request URL</label>
+      <input class="form-input" style="width:100%" type="url" name="dropbox_file_request_url"
+             value="{{ $settings['dropbox_file_request_url'] ?? '' }}"
+             placeholder="https://www.dropbox.com/request/…">
+      <p style="font-size:11px;color:#8E9BAB;margin-top:6px;">When set, the upload page shows a button linking here instead of the built-in uploader.</p>
+    </div>
+  </div>
+
   <button type="submit" class="s-save">Save Settings</button>
 
   @if(session('settings_saved'))

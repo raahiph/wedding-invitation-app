@@ -327,6 +327,7 @@ class AdminController extends Controller
             'wedding_start_raw', 'wedding_end_raw',
             'session1_start_raw', 'session1_end_raw',
             'session2_start_raw', 'session2_end_raw',
+            'dropbox_file_request_url',
         ];
         foreach ($manualKeys as $key) {
             Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key, '')]);
