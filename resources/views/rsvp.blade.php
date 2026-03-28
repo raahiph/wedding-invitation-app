@@ -322,9 +322,24 @@ body::before {
   font-family:'Montserrat',sans-serif; font-style:italic; font-size:13px;
   color:var(--light-muted); line-height:1.65; margin-bottom:32px;
 }
+.rsvp-event-date-wrap {
+  border-top:1px solid rgba(34,48,74,0.15);
+  border-bottom:1px solid rgba(34,48,74,0.15);
+  padding:18px 0; margin:0;
+}
+.rsvp-event-date {
+  font-family:'Montserrat',sans-serif; font-size:15px; font-weight:700;
+  letter-spacing:0.06em; text-transform:uppercase;
+  color:var(--navy); margin:0 0 4px; line-height:1.4;
+}
+.rsvp-event-date-sub {
+  font-family:'Montserrat',sans-serif; font-size:11px; font-weight:400;
+  letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--blue-grey); margin:0;
+}
 .rsvp-lead {
-  font-family:'Montserrat',sans-serif; font-style:italic; font-size:16px;
-  font-weight:400; color:var(--muted); line-height:1.8; margin-bottom:24px;
+  font-family:'Montserrat',sans-serif; font-style:italic; font-size:13px;
+  font-weight:400; color:var(--muted); line-height:1.8; margin:24px 0;
 }
 .rsvp-submitted-note {
   font-family:'Montserrat',sans-serif; font-size:13px; font-weight:400;
@@ -505,13 +520,15 @@ body::before {
       <span class="rsvp-guest-name">{{ $guest->nickname ?: $guest->name }}</span>
     @endif
     <h2 class="s-title">Will you <em style="font-style:italic;color:var(--navy);">join us?</em></h2>
+    <div class="rsvp-event-date-wrap">
+      <p class="rsvp-event-date">{{ $wedding['date'] }}</p>
+      <p class="rsvp-event-date-sub">{{ $wedding['venue'] }}, {{ $wedding['city'] }}</p>
+    </div>
     <p class="rsvp-lead">Kindly respond by {{ $wedding['rsvp_by'] }}.<br>We cannot wait to celebrate with you.</p>
 
-    @if($rsvp ?? false)
-      <p class="rsvp-submitted-note">
-        You responded as <strong>{{ $rsvp->attending ? 'attending' : 'not attending' }}</strong>. You can update your response below.
-      </p>
-    @endif
+    <p class="rsvp-submitted-note" id="rsvp-submitted-note" @unless($rsvp ?? false) style="display:none" @endunless>
+      You responded as <strong id="rsvp-submitted-status">{{ isset($rsvp) ? ($rsvp->attending ? 'attending' : 'not attending') : '' }}</strong>. You can update your response below.
+    </p>
 
     <form class="form" id="rsvp-form">
       @csrf
@@ -608,11 +625,23 @@ body::before {
       .then(r => r.json())
       .then(data => {
         if (data.ok) {
+          const note   = document.getElementById('rsvp-submitted-note');
+          const status = document.getElementById('rsvp-submitted-status');
+          status.textContent  = attending === '1' ? 'attending' : 'not attending';
+          note.style.display  = '';
           msg.textContent      = data.message;
           btn.textContent      = attending === '1' ? 'See you there ♡' : 'You\'ll be missed.';
           btn.style.background = '#22304A';
           btn.style.color      = '#fff';
           btn.style.border     = '1px solid #22304A';
+          setTimeout(() => {
+            btn.textContent      = 'Update Response';
+            btn.style.background = '';
+            btn.style.color      = '';
+            btn.style.border     = '';
+            btn.disabled         = false;
+            msg.textContent      = '';
+          }, 3000);
         } else {
           msg.textContent = data.message || 'Something went wrong.';
           msg.className   = 'rsvp-msg error';
