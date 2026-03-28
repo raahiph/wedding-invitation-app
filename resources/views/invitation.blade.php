@@ -791,47 +791,6 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
   }, { threshold: 0.05 });
   items.forEach(el => observer.observe(el));
 
-  // RSVP form
-  document.getElementById('rsvp-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const btn  = document.getElementById('rsvp-btn');
-    const msg  = document.getElementById('rsvp-msg');
-    const form = this;
-
-    btn.disabled    = true;
-    btn.textContent = 'Sending…';
-    msg.textContent = '';
-    msg.className   = 'rsvp-msg';
-
-    const body = new URLSearchParams({
-      _token:     document.querySelector('meta[name="csrf-token"]').content,
-      attending:  document.getElementById('rsvp-attending').value,
-      plus_ones:  document.getElementById('rsvp-plus').value,
-    });
-
-    fetch('{{ route("rsvp.store") }}', { method:'POST', body })
-      .then(r => r.json())
-      .then(data => {
-        if (data.ok) {
-          msg.textContent  = data.message;
-          btn.textContent  = 'See you there ♡';
-          btn.style.background = '#22304A';
-          btn.style.color      = '#fff';
-          btn.style.border     = '1px solid #22304A';
-        } else {
-          msg.textContent = data.message || 'Something went wrong.';
-          msg.className   = 'rsvp-msg error';
-          btn.disabled    = false;
-          btn.textContent = 'Confirm Attendance';
-        }
-      })
-      .catch(() => {
-        msg.textContent = 'Connection error. Please try again.';
-        msg.className   = 'rsvp-msg error';
-        btn.disabled    = false;
-        btn.textContent = 'Confirm Attendance';
-      });
-  });
 </script>
 </body>
 </html>

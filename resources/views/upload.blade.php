@@ -244,106 +244,108 @@ const queueList  = document.getElementById('up-queue-list');
 const doneEl     = document.getElementById('up-done');
 let activeUploads = 0;
 
-zone.addEventListener('click', () => photoInput.click());
-zone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') photoInput.click(); });
+if (zone) {
+  zone.addEventListener('click', () => photoInput.click());
+  zone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') photoInput.click(); });
 
-photoInput.addEventListener('change', function () {
-  const files = Array.from(this.files);
-  if (!files.length) return;
-  this.value = '';
-  startUploads(files);
-});
-
-// Drag & drop
-zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
-zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
-zone.addEventListener('drop', e => {
-  e.preventDefault();
-  zone.classList.remove('drag');
-  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-  if (files.length) startUploads(files);
-});
-
-function startUploads(files) {
-  zone.style.display   = 'none';
-  queueEl.style.display = 'block';
-  doneEl.style.display  = 'none';
-  files.forEach(uploadFile);
-}
-
-function uploadFile(file) {
-  const li     = document.createElement('li');
-  li.className = 'up-queue-item';
-  li.innerHTML = `
-    <span class="up-queue-name">${escHtml(file.name)}</span>
-    <span class="up-queue-status">0%</span>
-    <div class="up-queue-bar"><div class="up-queue-fill"></div></div>`;
-  queueList.appendChild(li);
-
-  const statusEl = li.querySelector('.up-queue-status');
-  const fillEl   = li.querySelector('.up-queue-fill');
-
-  activeUploads++;
-
-  const form = new FormData();
-  form.append('photo', file);
-  form.append('_token', csrfToken);
-
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', '{{ route("gallery.upload") }}');
-
-  xhr.upload.addEventListener('progress', e => {
-    if (!e.lengthComputable) return;
-    const pct = Math.round((e.loaded / e.total) * 100);
-    fillEl.style.width   = pct + '%';
-    statusEl.textContent = pct < 100 ? pct + '%' : 'Processing…';
+  photoInput.addEventListener('change', function () {
+    const files = Array.from(this.files);
+    if (!files.length) return;
+    this.value = '';
+    startUploads(files);
   });
 
-  xhr.addEventListener('load', () => {
-    activeUploads--;
-    try {
-      const res = JSON.parse(xhr.responseText);
-      if (res.ok) {
-        fillEl.style.width   = '100%';
-        fillEl.classList.add('done');
-        statusEl.textContent = 'Done';
-        statusEl.className   = 'up-queue-status done';
-      } else {
-        markError(fillEl, statusEl, res.message || 'Failed');
-      }
-    } catch { markError(fillEl, statusEl, 'Failed'); }
-    checkDone();
+  // Drag & drop
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length) startUploads(files);
   });
 
-  xhr.addEventListener('error', () => {
-    activeUploads--;
-    markError(fillEl, statusEl, 'Network error');
-    checkDone();
+  function startUploads(files) {
+    zone.style.display    = 'none';
+    queueEl.style.display = 'block';
+    doneEl.style.display  = 'none';
+    files.forEach(uploadFile);
+  }
+
+  function uploadFile(file) {
+    const li     = document.createElement('li');
+    li.className = 'up-queue-item';
+    li.innerHTML = `
+      <span class="up-queue-name">${escHtml(file.name)}</span>
+      <span class="up-queue-status">0%</span>
+      <div class="up-queue-bar"><div class="up-queue-fill"></div></div>`;
+    queueList.appendChild(li);
+
+    const statusEl = li.querySelector('.up-queue-status');
+    const fillEl   = li.querySelector('.up-queue-fill');
+
+    activeUploads++;
+
+    const form = new FormData();
+    form.append('photo', file);
+    form.append('_token', csrfToken);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '{{ route("gallery.upload") }}');
+
+    xhr.upload.addEventListener('progress', e => {
+      if (!e.lengthComputable) return;
+      const pct = Math.round((e.loaded / e.total) * 100);
+      fillEl.style.width   = pct + '%';
+      statusEl.textContent = pct < 100 ? pct + '%' : 'Processing…';
+    });
+
+    xhr.addEventListener('load', () => {
+      activeUploads--;
+      try {
+        const res = JSON.parse(xhr.responseText);
+        if (res.ok) {
+          fillEl.style.width   = '100%';
+          fillEl.classList.add('done');
+          statusEl.textContent = 'Done';
+          statusEl.className   = 'up-queue-status done';
+        } else {
+          markError(fillEl, statusEl, res.message || 'Failed');
+        }
+      } catch { markError(fillEl, statusEl, 'Failed'); }
+      checkDone();
+    });
+
+    xhr.addEventListener('error', () => {
+      activeUploads--;
+      markError(fillEl, statusEl, 'Network error');
+      checkDone();
+    });
+
+    xhr.send(form);
+  }
+
+  function markError(fillEl, statusEl, msg) {
+    fillEl.style.width      = '100%';
+    fillEl.style.background = '#E87070';
+    statusEl.textContent    = msg;
+    statusEl.className      = 'up-queue-status error';
+  }
+
+  function checkDone() {
+    if (activeUploads > 0) return;
+    setTimeout(() => {
+      queueEl.style.display = 'none';
+      doneEl.style.display  = 'flex';
+      queueList.innerHTML   = '';
+    }, 1200);
+  }
+
+  document.getElementById('up-more-btn').addEventListener('click', () => {
+    doneEl.style.display = 'none';
+    zone.style.display   = 'block';
   });
-
-  xhr.send(form);
 }
-
-function markError(fillEl, statusEl, msg) {
-  fillEl.style.width      = '100%';
-  fillEl.style.background = '#E87070';
-  statusEl.textContent    = msg;
-  statusEl.className      = 'up-queue-status error';
-}
-
-function checkDone() {
-  if (activeUploads > 0) return;
-  setTimeout(() => {
-    queueEl.style.display = 'none';
-    doneEl.style.display  = 'flex';
-    queueList.innerHTML   = '';
-  }, 1200);
-}
-
-document.getElementById('up-more-btn').addEventListener('click', () => {
-  doneEl.style.display = 'none';
-  zone.style.display   = 'block';
-});
 
 function escHtml(str) {
   return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

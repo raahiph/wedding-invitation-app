@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 // ── Gate (unprotected) ───────────────────────────────────────────────────────
 Route::get('/gate', [GateController::class, 'show'])->name('gate.show');
-Route::post('/gate', [GateController::class, 'verify'])->name('gate.verify');
+Route::post('/gate', [GateController::class, 'verify'])->name('gate.verify')->middleware('throttle:10,1');
 
 // ── Gallery ───────────────────────────────────────────────────────────────────
 Route::get('/gallery', [GalleryController::class, 'show'])->name('gallery')->middleware('guest.verified');
@@ -98,7 +98,7 @@ if (file_exists(storage_path('app/rsvp_mode'))) {
 
 // ── Admin (unprotected login, protected dashboard) ───────────────────────────
 Route::get('/admin/login', [AdminController::class, 'showLogin'])->name('admin.login');
-Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.post');
+Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.post')->middleware('throttle:5,1');
 
 Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'index'])->name('index');

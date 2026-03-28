@@ -46,7 +46,7 @@ class AdminController extends Controller
 
     public function index()
     {
-        $guests = Guest::with('rsvp')->latest()->get();
+        $guests = Guest::with('rsvp')->latest()->limit(2000)->get();
 
         $totalGuests    = $guests->count();
         $totalAttending = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
@@ -192,7 +192,7 @@ class AdminController extends Controller
 
     public function guestList(string $side)
     {
-        $guests = Guest::with('rsvp')->where('side', $side)->latest()->get();
+        $guests = Guest::with('rsvp')->where('side', $side)->latest()->limit(2000)->get();
 
         $totalGuests     = $guests->count();
         $totalAttending  = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
@@ -207,7 +207,7 @@ class AdminController extends Controller
 
     public function stats()
     {
-        $guests = Guest::with('rsvp')->get();
+        $guests = Guest::with('rsvp')->limit(2000)->get();
 
         $total     = $guests->count();
         $attending = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
@@ -330,7 +330,7 @@ class AdminController extends Controller
             'dropbox_file_request_url',
         ];
         foreach ($manualKeys as $key) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key, '')]);
+            Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key) ?? '']);
         }
 
         // Derive and save display formats from raw picker values

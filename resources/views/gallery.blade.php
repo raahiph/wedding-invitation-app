@@ -303,12 +303,13 @@ let   knownIds   = new Set([...document.querySelectorAll('.gl-item')].map(el => 
 let   activeUploads = 0;
 
 // ── File picker ──────────────────────────────────────────────────
-document.getElementById('photo-input').addEventListener('change', function () {
+const photoInput = document.getElementById('photo-input');
+if (photoInput) photoInput.addEventListener('change', function () {
   const files = Array.from(this.files);
   if (!files.length) return;
   this.value = '';
   files.forEach(uploadFile);
-});
+}); // end photoInput guard
 
 // ── Upload a single file ─────────────────────────────────────────
 function uploadFile(file) {

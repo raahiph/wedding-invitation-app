@@ -113,8 +113,8 @@
   search.addEventListener('input', filter);
   statusSel.addEventListener('change', filter);
   if (sideSel) sideSel.addEventListener('change', filter);
-  rsvpSentSel.addEventListener('change', filter);
-  inviteSentSel.addEventListener('change', filter);
+  if (rsvpSentSel)   rsvpSentSel.addEventListener('change', filter);
+  if (inviteSentSel) inviteSentSel.addEventListener('change', filter);
   filter();
 
   // ── Column sort ───────────────────────────────────
