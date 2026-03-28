@@ -122,8 +122,10 @@ body::before {
    HERO
 ══════════════════════════════ */
 .hero {
-  position:relative; height:100vh;
-  display:flex; align-items:center; justify-content:center; overflow:hidden;
+  position:relative; height:100vh; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:space-evenly;
+  padding:16px 0;
 }
 .hero-bg { position:absolute; inset:0; z-index:0; }
 .hero-bg img {
@@ -156,8 +158,7 @@ body::before {
   background:linear-gradient(to right, transparent, var(--navy), transparent);
 }
 .hero-badge {
-  position:absolute; top:80px; left:50%; transform:translateX(-50%);
-  z-index:4; text-align:center; white-space:nowrap;
+  position:relative; z-index:4; text-align:center; white-space:nowrap;
   animation:fadeSlideDown 1.2s ease 0.3s both;
 }
 .hero-badge-text {
@@ -165,16 +166,13 @@ body::before {
   color:rgba(255,255,255,0.7); letter-spacing:0.55em; text-transform:uppercase;
   text-shadow:0 1px 8px rgba(0,0,0,0.6);
 }
-.hero-body {
-  position:relative; z-index:4;
-  width:100%; padding:0 80px;
-  display:flex; flex-direction:column;
-  align-items:center; text-align:center;
+.hero-in-flow {
+  position:relative; z-index:4; text-align:center; padding:0 32px;
 }
 .hero-eyebrow {
   font-family:'Montserrat',sans-serif; font-style:italic; font-weight:400;
   font-size:clamp(14px,1.8vw,19px); color:rgba(255,255,255,0.88);
-  line-height:1.7; margin:60px 0 14px;
+  line-height:1.7; margin:0;
   animation:fadeSlideUp 1s ease 0.6s both;
   text-shadow:0 1px 10px rgba(0,0,0,0.6);
 }
@@ -184,6 +182,7 @@ body::before {
   display:flex; flex-direction:column; align-items:center;
   animation:fadeSlideUp 1s ease 0.75s both;
   text-shadow:0 2px 12px rgba(0,0,0,0.55), 0 8px 32px rgba(0,0,0,0.35);
+  padding:2rem 0;
 }
 .hero-title .name-m { display:block; color:#ffffff; }
 .hero-title .name-f { display:block; color:#ffffff; }
@@ -194,7 +193,7 @@ body::before {
   display:block;
   animation:fadeSlideUp 1s ease 0.85s both;
 }
-.hero-sep { margin:0 0 12px; animation:fadeSlideUp 1s ease 1.05s both; }
+.hero-sep { margin:8px 0; animation:fadeSlideUp 1s ease 1.05s both; }
 .sep-date {
   font-family:'Montserrat',sans-serif; font-size:clamp(15px,2vw,22px); font-weight:300;
   color:rgba(255,255,255,0.92); letter-spacing:0.35em; white-space:nowrap;
@@ -207,10 +206,14 @@ body::before {
   animation:fadeSlideUp 1s ease 1.15s both;
 }
 .hero-scroll {
-  position:absolute; bottom:36px; left:0; right:0; z-index:4;
+  position:relative; z-index:4;
   display:flex; flex-direction:column; align-items:center; gap:12px;
   background:none; border:none; padding:0; cursor:pointer;
   animation:fadeSlideUp 1s ease 2.5s both, scrollBounce 1.8s ease-in-out 3.5s infinite;
+}
+.hero-scroll-label {
+  font-family:'Montserrat',sans-serif; font-size:9px; font-weight:300;
+  letter-spacing:0.45em; text-transform:uppercase; color:rgba(255,255,255,0.65);
 }
 .hero-scroll-mouse {
   width:34px; height:54px;
@@ -379,7 +382,7 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
    ANIMATIONS
 ══════════════════════════════ */
 @keyframes fadeSlideUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-@keyframes fadeSlideDown { from { opacity:0; transform:translateX(-50%) translateY(-18px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+@keyframes fadeSlideDown { from { opacity:0; transform:translateY(-18px); } to { opacity:1; transform:translateY(0); } }
 .reveal { opacity:0; transform:translateY(28px); transition:opacity 1s ease, transform 1s ease; }
 .reveal.in { opacity:1; transform:translateY(0); }
 .reveal.d1 { transition-delay:0.12s; }
@@ -392,7 +395,6 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
 ══════════════════════════════ */
 @media(max-width:900px) {
   .hero-body { padding:0 24px; }
-  .hero-scroll { bottom:28px; }
   .photo-band { height:360px; }
   .dcards { grid-template-columns:1fr 1fr; }
   .dcard.d3, .dcard.d4 { grid-column: span 2; }
@@ -526,16 +528,14 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
     <p class="hero-badge-text"> with their families</p>
   </div>
 
-  <div class="hero-body">
-    <h1 class="hero-title">
-      <span class="name-m">{{ $wedding['groom'] }}</span>
-      <span class="hero-amp">&</span>
-      <span class="name-f">{{ $wedding['bride'] }}</span>
-    </h1>
+  <h1 class="hero-title hero-in-flow">
+    <span class="name-m">{{ $wedding['groom'] }}</span>
+    <span class="hero-amp">&</span>
+    <span class="name-f">{{ $wedding['bride'] }}</span>
+  </h1>
+  <div class="hero-in-flow">
     <p class="hero-eyebrow">request the pleasure of your company<br>at the celebration of our marriage</p>
-    <div class="hero-sep">
-      <span class="sep-date">{{ $wedding['date_short'] }}</span>
-    </div>
+    <div class="hero-sep"><span class="sep-date">{{ $wedding['date_short'] }}</span></div>
     <p class="hero-place">
       @if($guest && $guest->attends_ceremony)
         {{ $wedding['wedding_time_words'] }}
@@ -550,6 +550,7 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
   </div>
 
   <button class="hero-scroll" aria-label="Scroll down" onclick="document.querySelector('.ayah-mid').scrollIntoView({behavior:'smooth'})">
+    <span class="hero-scroll-label">Scroll to Explore</span>
     <div class="hero-scroll-mouse">
       <div class="hero-scroll-dot"></div>
     </div>

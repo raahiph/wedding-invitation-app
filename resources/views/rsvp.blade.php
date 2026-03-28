@@ -97,14 +97,10 @@ body::before {
 /* ── Hero ──────────────────────────────────────── */
 
 .hero {
-  position:relative; height:100vh;
-  display:flex; align-items:center; justify-content:center; overflow:hidden;
-}
-@media (max-width: 768px) {
-  .hero {
-  position:relative; height:100vh;
-  display:flex; align-items:center; justify-content:center; overflow:hidden;
-}
+  position:relative; height:100vh; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:space-evenly;
+  padding:16px 0;
 }
 .hero-bg { position:absolute; inset:0; z-index:0; }
 .hero-bg img {
@@ -139,8 +135,7 @@ body::before {
 }
 
 .hero-badge {
-  position:absolute; top:80px; left:50%; transform:translateX(-50%);
-  z-index:4; text-align:center; white-space:nowrap;
+  position:relative; z-index:4; text-align:center; white-space:nowrap;
   animation:fadeSlideDown 1.2s ease 0.3s both;
 }
 .hero-badge-text {
@@ -149,18 +144,14 @@ body::before {
   text-shadow:0 1px 8px rgba(0,0,0,0.6);
 }
 
-.hero-body {
-  position:relative; z-index:4;
-  width:100%; padding:0 80px;
-  display:flex; flex-direction:column;
-  align-items:center; text-align:center;
-  margin-bottom:160px;
+.hero-in-flow {
+  position:relative; z-index:4; text-align:center; padding:0 32px;
 }
 
 .hero-eyebrow {
   font-family:'Montserrat',sans-serif; font-style:italic; font-weight:400;
   font-size:clamp(14px,1.8vw,19px); color:rgba(255,255,255,0.88);
-  line-height:1.7; margin:10px 0 14px;
+  line-height:1.7; margin:0;
   animation:fadeSlideUp 1s ease 0.6s both;
   text-shadow:0 1px 10px rgba(0,0,0,0.6);
 }
@@ -171,8 +162,7 @@ body::before {
   display:flex; flex-direction:column; align-items:center;
   animation:fadeSlideUp 1s ease 0.75s both;
   text-shadow:0 2px 12px rgba(0,0,0,0.55), 0 8px 32px rgba(0,0,0,0.35);
-  padding-top: 3rem;
-  padding-bottom: 3rem;
+  padding:3rem 0;
 }
 .hero-title .name-m { display:block; color:#ffffff; }
 .hero-title .name-f { display:block; color:#ffffff; }
@@ -186,7 +176,7 @@ body::before {
 }
 
 .hero-sep {
-  margin:0 0 12px;
+  margin:8px 0;
   animation:fadeSlideUp 1s ease 1.05s both;
 }
 .sep-date {
@@ -203,8 +193,7 @@ body::before {
 }
 
 .hero-countdown {
-  position:absolute; bottom:150px; left:0; right:0;
-  z-index:4;
+  position:relative; z-index:4;
   display:flex; flex-direction:column; align-items:center; gap:14px;
   animation:fadeSlideUp 1s ease 2s both;
 }
@@ -233,10 +222,14 @@ body::before {
 }
 
 .hero-scroll {
-  position:absolute; bottom:36px; left:0; right:0; z-index:4;
+  position:relative; z-index:4;
   display:flex; flex-direction:column; align-items:center; gap:12px;
   background:none; border:none; padding:0; cursor:pointer;
   animation:fadeSlideUp 1s ease 2.5s both, scrollBounce 1.8s ease-in-out 3.5s infinite;
+}
+.hero-scroll-label {
+  font-family:'Montserrat',sans-serif; font-size:9px; font-weight:300;
+  letter-spacing:0.45em; text-transform:uppercase; color:rgba(255,255,255,0.65);
 }
 .hero-scroll-mouse {
   width:34px; height:54px;
@@ -422,8 +415,8 @@ body::before {
   to   { opacity:1; transform:translateY(0); }
 }
 @keyframes fadeSlideDown {
-  from { opacity:0; transform:translateX(-50%) translateY(-18px); }
-  to   { opacity:1; transform:translateX(-50%) translateY(0); }
+  from { opacity:0; transform:translateY(-18px); }
+  to   { opacity:1; transform:translateY(0); }
 }
 
 @media(max-width:900px) {
@@ -454,16 +447,14 @@ body::before {
     <p class="hero-badge-text">Save the Date</p>
   </div>
 
-  <div class="hero-body">
-    <h1 class="hero-title">
-      <span class="name-m">{{ $wedding['groom'] }}</span>
-      <span class="hero-amp">&</span>
-      <span class="name-f">{{ $wedding['bride'] }}</span>
-    </h1>
+  <h1 class="hero-title hero-in-flow">
+    <span class="name-m">{{ $wedding['groom'] }}</span>
+    <span class="hero-amp">&</span>
+    <span class="name-f">{{ $wedding['bride'] }}</span>
+  </h1>
+  <div class="hero-in-flow">
     <p class="hero-eyebrow">request the pleasure of your company<br>at the celebration of our marriage</p>
-    <div class="hero-sep">
-      <span class="sep-date">{{ $wedding['date_short'] }}</span>
-    </div>
+    <div class="hero-sep"><span class="sep-date">{{ $wedding['date_short'] }}</span></div>
     <p class="hero-eyebrow">Formal invitation to follow</p>
   </div>
 
@@ -493,6 +484,7 @@ body::before {
   </div>
 
   <button class="hero-scroll" aria-label="Scroll to RSVP" onclick="document.querySelector('.rsvp-section').scrollIntoView({behavior:'smooth'})">
+    <span class="hero-scroll-label">RSVP Below</span>
     <div class="hero-scroll-mouse">
       <div class="hero-scroll-dot"></div>
     </div>
