@@ -579,9 +579,9 @@ body::before {
       <p class="rsvp-msg" id="rsvp-msg"></p>
     </form>
 
-    <div class="cal-wrap">
+    <!-- <div class="cal-wrap">
       <a href="{{ route('calendar.ics') }}" class="cal-btn">Add to Calendar</a>
-    </div>
+    </div> -->
   </div>
 </div>
 

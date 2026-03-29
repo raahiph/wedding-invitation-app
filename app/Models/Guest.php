@@ -22,6 +22,13 @@ class Guest extends Model
 
     public static function normaliseMobile(string $raw): string
     {
-        return preg_replace('/[^0-9]/', '', $raw);
+        $digits = preg_replace('/[^0-9]/', '', $raw);
+
+        // Strip Maldives country code prefix (960) if present
+        if (str_starts_with($digits, '960') && strlen($digits) > 7) {
+            $digits = substr($digits, 3);
+        }
+
+        return $digits;
     }
 }
