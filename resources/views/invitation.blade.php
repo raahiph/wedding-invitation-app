@@ -525,7 +525,7 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
 
   <div class="hero-badge">
     <p class="hero-badge-text">Together</p><br>
-    <p class="hero-badge-text"> with their families</p>
+    <p class="hero-badge-text">with our families</p>
   </div>
 
   <h1 class="hero-title hero-in-flow">
@@ -537,7 +537,7 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
     <p class="hero-eyebrow">request the pleasure of your company<br>at the celebration of our marriage</p>
     <div class="hero-sep"><span class="sep-date">{{ $wedding['date_short'] }}</span></div>
     <p class="hero-place">
-      @if($guest && $guest->attends_ceremony)
+      <!-- @if($guest && $guest->attends_ceremony)
         {{ $wedding['wedding_time_words'] }}
       @elseif($guest && $guest->session == 1)
         {{ $wedding['session1_time_words'] }}
@@ -545,12 +545,12 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
         {{ $wedding['session2_time_words'] }}
       @else
         {{ $wedding['reception_time_words'] }}
-      @endif
-      <br>at {{ $wedding['venue'] }}, {{ $wedding['city'] }}</p>
+      @endif -->
+      at {{ $wedding['venue'] }},<br> {{ $wedding['city'] }}</p>
   </div>
 
   <button class="hero-scroll" aria-label="Scroll down" onclick="document.querySelector('.ayah-mid').scrollIntoView({behavior:'smooth'})">
-    <span class="hero-scroll-label">Scroll to Explore</span>
+    <span class="hero-scroll-label">Scroll for Details</span>
     <div class="hero-scroll-mouse">
       <div class="hero-scroll-dot"></div>
     </div>

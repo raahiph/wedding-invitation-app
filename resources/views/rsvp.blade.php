@@ -156,13 +156,23 @@ body::before {
   text-shadow:0 1px 10px rgba(0,0,0,0.6);
 }
 
+.opening {
+  font-family:'Montserrat',sans-serif; font-style:italic; font-weight:400;
+  font-size:clamp(14px,1.8vw,19px); color:rgba(255,255,255,0.88);
+  line-height:1.7; margin:0;
+  animation:fadeSlideUp 1s ease 0.6s both;
+  text-shadow:0 1px 10px rgba(0,0,0,0.6);
+  padding-top:0.5rem;
+}
+
 .hero-title {
   font-family:'BrittanySignature',cursive; font-weight:400;
   font-size:clamp(55px,10vw,108px); line-height:1;
   display:flex; flex-direction:column; align-items:center;
   animation:fadeSlideUp 1s ease 0.75s both;
   text-shadow:0 2px 12px rgba(0,0,0,0.55), 0 8px 32px rgba(0,0,0,0.35);
-  padding:3rem 0;
+  /* padding:3rem 0; */
+  padding-top:10px;
 }
 .hero-title .name-m { display:block; color:#ffffff; }
 .hero-title .name-f { display:block; color:#ffffff; }
@@ -460,7 +470,16 @@ body::before {
 
   <div class="hero-badge">
     <p class="hero-badge-text">Save the Date</p>
+    <div class="hero-in-flow">
+    <p class="hero-eyebrow opening">To celebrate the wedding of</p>
   </div>
+  
+  </div>
+
+  <!-- <div class="hero-in-flow">
+    <p class="hero-eyebrow opening">To celebrate the wedding of</p>
+  </div>
+   -->
 
   <h1 class="hero-title hero-in-flow">
     <span class="name-m">{{ $wedding['groom'] }}</span>
@@ -468,10 +487,12 @@ body::before {
     <span class="name-f">{{ $wedding['bride'] }}</span>
   </h1>
   <div class="hero-in-flow">
-    <p class="hero-eyebrow">request the pleasure of your company<br>at the celebration of our marriage</p>
     <div class="hero-sep"><span class="sep-date">{{ $wedding['date_short'] }}</span></div>
     <p class="hero-eyebrow">Formal invitation to follow</p>
   </div>
+  <!-- <div class="hero-in-flow">
+    <p class="hero-eyebrow">Formal invitation to follow</p>
+  </div> -->
 
   <div class="hero-countdown">
     <p class="cd-label">Counting down</p>
