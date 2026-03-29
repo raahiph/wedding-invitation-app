@@ -521,10 +521,12 @@ body::before {
     @endif
     <h2 class="s-title">Will you <em style="font-style:italic;color:var(--navy);">join us?</em></h2>
     <div class="rsvp-event-date-wrap">
+      <p class="rsvp-event-date-sub">On</p>
       <p class="rsvp-event-date">{{ $wedding['date'] }}</p>
-      <p class="rsvp-event-date-sub">{{ $wedding['venue'] }}, {{ $wedding['city'] }}</p>
+      <p class="rsvp-event-date-sub">as we celebrate our marriage</p>
+      <!-- <p class="rsvp-event-date-sub">{{ $wedding['venue'] }}, {{ $wedding['city'] }}</p> -->
     </div>
-    <p class="rsvp-lead">Kindly respond by {{ $wedding['rsvp_by'] }}.<br>We cannot wait to celebrate with you.</p>
+    <p class="rsvp-lead">Kindly respond by {{ $wedding['rsvp_by'] }}.<br>We cannot wait to celebrate with you!</p>
 
     <p class="rsvp-submitted-note" id="rsvp-submitted-note" @unless($rsvp ?? false) style="display:none" @endunless>
       You responded as <strong id="rsvp-submitted-status">{{ isset($rsvp) ? ($rsvp->attending ? 'attending' : 'not attending') : '' }}</strong>. You can update your response below.
