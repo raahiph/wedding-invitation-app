@@ -146,7 +146,7 @@ body::before {
 
   <form method="POST" action="{{ route('gate.verify') }}" id="gate-form">
     @csrf
-    <label class="gate-label" for="mobile">Your mobile number</label>
+    <label class="gate-label" for="mobile">Enter your mobile number</label>
     <input
       type="tel"
       id="mobile"
