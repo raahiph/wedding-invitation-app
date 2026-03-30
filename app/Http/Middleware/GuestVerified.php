@@ -23,6 +23,14 @@ class GuestVerified
 
         if (!$guest) {
             session()->forget('guest_id');
+
+            // Serve OG tags at the original URL for social media crawlers
+            $ua = $request->userAgent() ?? '';
+            if (preg_match('/facebookexternalhit|Twitterbot|WhatsApp|TelegramBot|LinkedInBot|Slackbot|Discordbot|Googlebot|Viber/i', $ua)) {
+                $rsvpMode = file_exists(storage_path('app/rsvp_mode'));
+                return response(view('gate', ['rsvpMode' => $rsvpMode]));
+            }
+
             return redirect()->guest(route('gate.show'));
         }
 

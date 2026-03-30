@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>{{ $wedding['groom'] }} & {{ $wedding['bride'] }} — {{ $wedding['date_short'] }}</title>
-<meta name="description" content="You're invited to the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — {{ $wedding['date'] }}, {{ $wedding['venue'] }}, {{ $wedding['city'] }}.">
+<title>{{ $wedding['groom'] }} & {{ $wedding['bride'] }} — RSVP</title>
+<meta name="description" content="You're invited to the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }}. Kindly confirm your attendance by {{ $wedding['rsvp_by'] }}.">
 <meta name="twitter:card" content="summary_large_image">
-<meta property="og:title" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — Wedding Invitation">
-<meta property="og:description" content="You're invited to the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — {{ $wedding['date'] }}, {{ $wedding['venue'] }}, {{ $wedding['city'] }}.">
+<meta property="og:title" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — RSVP">
+<meta property="og:description" content="You're invited to the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }}. Kindly confirm your attendance by {{ $wedding['rsvp_by'] }}.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="{{ config('app.url') }}/assets/img/og-cover.png">
 <meta property="og:image:width" content="1200">

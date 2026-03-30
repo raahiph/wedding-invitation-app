@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>{{ $wedding['groom'] }} & {{ $wedding['bride'] }} — {{ $wedding['date'] }}</title>
+<title>{{ $wedding['groom'] }} & {{ $wedding['bride'] }} — Wedding Invitation</title>
 <meta name="description" content="You're invited to the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — {{ $wedding['date'] }}, {{ $wedding['venue'] }}, {{ $wedding['city'] }}.">
 <meta name="twitter:card" content="summary_large_image">
 <meta property="og:title" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — Wedding Invitation">

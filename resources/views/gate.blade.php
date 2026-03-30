@@ -3,11 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ $wedding['groom'] }} & {{ $wedding['bride'] }} — Enter</title>
-<meta name="description" content="You're invited to the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — {{ $wedding['date'] }}, {{ $wedding['venue'] }}, {{ $wedding['city'] }}.">
+@php
+    $ogTitle = $rsvpMode
+        ? $wedding['groom'] . ' & ' . $wedding['bride'] . ' — RSVP'
+        : $wedding['groom'] . ' & ' . $wedding['bride'] . ' — Wedding Invitation';
+    $ogDesc = $rsvpMode
+        ? 'You\'re invited to the wedding of ' . $wedding['groom'] . ' & ' . $wedding['bride'] . '. Kindly confirm your attendance by ' . $wedding['rsvp_by'] . '.'
+        : 'You\'re invited to the wedding of ' . $wedding['groom'] . ' & ' . $wedding['bride'] . ' — ' . $wedding['date'] . ', ' . $wedding['venue'] . ', ' . $wedding['city'] . '.';
+@endphp
+<title>{{ $wedding['groom'] }} & {{ $wedding['bride'] }} — {{ $rsvpMode ? 'RSVP' : 'Wedding Invitation' }}</title>
+<meta name="description" content="{{ $ogDesc }}">
 <meta name="twitter:card" content="summary_large_image">
-<meta property="og:title" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — Wedding Invitation">
-<meta property="og:description" content="You're invited to the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — {{ $wedding['date'] }}, {{ $wedding['venue'] }}, {{ $wedding['city'] }}.">
+<meta property="og:title" content="{{ $ogTitle }}">
+<meta property="og:description" content="{{ $ogDesc }}">
 <meta property="og:type" content="website">
 <meta property="og:image" content="{{ config('app.url') }}/assets/img/og-cover.png">
 <meta property="og:image:width" content="1200">

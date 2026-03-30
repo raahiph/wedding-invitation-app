@@ -13,7 +13,7 @@ class GateController extends Controller
             return redirect()->intended('/');
         }
 
-        return view('gate');
+        return view('gate', ['rsvpMode' => file_exists(storage_path('app/rsvp_mode'))]);
     }
 
     public function verify(Request $request)
