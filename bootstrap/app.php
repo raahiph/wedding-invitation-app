@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, \Throwable $e, \Illuminate\Http\Request $request) {
             if ($response->getStatusCode() === 419) {
+                if ($request->is('admin/*') || $request->is('admin')) {
+                    return redirect()->route('admin.login')
+                        ->withErrors(['email' => 'Your session expired. Please log in again.']);
+                }
                 return redirect()->route('gate.show')
                     ->withErrors(['mobile' => 'Your session expired. Please try again.']);
             }

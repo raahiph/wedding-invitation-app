@@ -140,7 +140,7 @@ class AdminController extends Controller
         $nickname        = substr(trim($request->input('nickname', '')), 0, 120);
         $notes           = substr(trim($request->input('notes', '')), 0, 255);
         $side            = in_array($request->input('side'), ['groom', 'bride', 'other']) ? $request->input('side') : 'other';
-        $attending       = $request->input('attending'); // 'yes', 'no', or ''
+        $attending       = $request->input('attending') ?? ''; // 'yes', 'no', or ''
         $plusOnes        = min(4, max(0, (int) $request->input('plus_ones', 0)));
         $attendsCeremony = $request->input('attends_ceremony') === '1';
         $sessionRaw      = $request->input('session', '');
