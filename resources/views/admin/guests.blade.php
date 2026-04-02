@@ -36,10 +36,10 @@
     </div>
   </form>
   @if(session('admin_msg'))
-    <p class="flash">{{ session('admin_msg') }}</p>
+    <script>document.addEventListener('DOMContentLoaded', () => showToast(@json(session('admin_msg'))));</script>
   @endif
   @if($errors->has('mobile'))
-    <p class="flash err">{{ $errors->first('mobile') }}</p>
+    <script>document.addEventListener('DOMContentLoaded', () => showToast(@json($errors->first('mobile')), true));</script>
   @endif
 </div>
 
@@ -58,7 +58,6 @@
       Sample CSV
     </a>
   </div>
-  <p class="flash" id="csv-flash" style="display:none"></p>
 </div>
 
 @include('admin.partials.guest-table', ['showSide' => false, 'emptyMessage' => "No guests on {$sideName}'s side yet."])

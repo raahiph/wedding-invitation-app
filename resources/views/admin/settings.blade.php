@@ -244,7 +244,7 @@
   <button type="submit" class="s-save">Save Settings</button>
 
   @if(session('settings_saved'))
-    <p class="s-saved">{{ session('settings_saved') }}</p>
+    <script>document.addEventListener('DOMContentLoaded', () => showToast(@json(session('settings_saved'))));</script>
   @endif
 
 </form>

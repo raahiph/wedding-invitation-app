@@ -73,6 +73,10 @@ if (file_exists(storage_path('app/rsvp_mode'))) {
         Route::get('/{any?}', function () {
             $guest = \App\Models\Guest::find(session('guest_id'));
             $rsvp  = $guest?->rsvp;
+            if ($guest?->rsvp_bypass) {
+                $recentPhotos = \App\Models\Photo::where('approved', true)->latest()->take(4)->get();
+                return view('invitation', compact('rsvp', 'guest', 'recentPhotos'));
+            }
             return view('rsvp', compact('guest', 'rsvp'));
         })->where('any', '(?!gate|admin|gallery|upload).*');
         Route::post('/rsvp', [RsvpController::class, 'store'])->name('rsvp.store');
@@ -106,6 +110,7 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::post('/guests', [AdminController::class, 'store'])->name('guests.store');
     Route::post('/guests/import', [AdminController::class, 'importCsv'])->name('guests.import');
     Route::post('/guests/bulk-destroy', [AdminController::class, 'bulkDestroy'])->name('guests.bulk-destroy');
+    Route::post('/guests/bulk-bypass',  [AdminController::class, 'bulkBypass'])->name('guests.bulk-bypass');
     Route::delete('/guests/{guest}', [AdminController::class, 'destroy'])->name('guests.destroy');
     Route::post('/countdown-toggle', [AdminController::class, 'toggleCountdown'])->name('countdown.toggle');
     Route::post('/guests/{guest}/update', [AdminController::class, 'adminUpdateGuest'])->name('guests.update');

@@ -184,7 +184,7 @@ function deletePhoto(id) {
       if (grid && !grid.querySelectorAll('.gp-card').length) location.reload();
     }
   })
-  .catch(() => alert('Delete failed.'));
+  .catch(() => showToast('Delete failed.', true));
 }
 </script>
 @endpush

@@ -158,8 +158,18 @@ input:checked + .toggle-slider::before { transform:translateX(22px); }
 .form-btn:hover { background:#2C3E54; border-color:#2C3E54; }
 
 /* ─── Flash ──────────────────────────────────────── */
-.flash { margin-top:12px; font-size:12px; color:#2E7D52; font-weight:400; }
-.flash.err { color:#C0392B; }
+#admin-toast {
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(12px);
+  background:#1A2332; color:#D4E0EC;
+  font-family:'Montserrat',sans-serif; font-size:12px; font-weight:500;
+  padding:10px 20px; border-radius:8px;
+  box-shadow:0 4px 18px rgba(0,0,0,0.35);
+  opacity:0; pointer-events:none;
+  transition:opacity 0.2s, transform 0.2s;
+  white-space:nowrap; z-index:9999;
+}
+#admin-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+#admin-toast.err  { background:#3D1F1F; color:#F1A9A9; }
 
 /* ─── Table filters ─────────────────────────────── */
 .tbl-filters {
@@ -257,7 +267,6 @@ tbody tr:hover td { background:#F7F9FB; }
   text-transform:uppercase; transition:background 0.2s;
 }
 .s-save:hover { background:#2C3E54; border-color:#2C3E54; }
-.s-saved { margin-top:14px; font-size:12px; color:#2E7D52; font-weight:400; }
 
 /* ─── Checkboxes ─────────────────────────────────── */
 .row-cb { width:15px; height:15px; cursor:pointer; accent-color:#1A2332; }
@@ -269,6 +278,15 @@ tbody tr:hover td { background:#F7F9FB; }
   padding:10px 16px; margin-bottom:8px;
 }
 .bulk-count { color:#8FA3B8; font-size:11px; font-weight:500; letter-spacing:0.05em; flex:1; }
+.bulk-bypass-btn {
+  background:#2A4E96; border:none; color:#FFFFFF;
+  font-family:'Montserrat',sans-serif; font-size:11px; font-weight:500;
+  letter-spacing:0.08em; text-transform:uppercase;
+  padding:7px 16px; border-radius:6px; cursor:pointer;
+  transition:background 0.2s;
+}
+.bulk-bypass-btn:hover { background:#1E3A73; }
+.bulk-bypass-btn:disabled { opacity:0.5; cursor:not-allowed; }
 .bulk-delete-btn {
   background:#C0392B; border:none; color:#FFFFFF;
   font-family:'Montserrat',sans-serif; font-size:11px; font-weight:500;
@@ -434,8 +452,18 @@ select.form-input {
 
   menuBtn.addEventListener('click', openSidebar);
   backdrop.addEventListener('click', closeSidebar);
+
+  function showToast(msg, err) {
+    const el = document.getElementById('admin-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'show' + (err ? ' err' : '');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.className = ''; }, err ? 5000 : 3000);
+  }
 </script>
 
+<div id="admin-toast"></div>
 @stack('scripts')
 </body>
 </html>

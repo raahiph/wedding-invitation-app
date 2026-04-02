@@ -32,6 +32,7 @@
 
 <div class="bulk-bar" id="bulk-bar" style="display:none">
   <span class="bulk-count" id="bulk-count"></span>
+  <button class="bulk-bypass-btn" id="bulk-bypass-btn">Bypass RSVP</button>
   <button class="bulk-delete-btn" id="bulk-delete-btn">Delete Selected</button>
   <button class="bulk-clear-btn" id="bulk-clear-btn">Clear</button>
 </div>
@@ -53,6 +54,7 @@
         <th data-sort="date">Submitted</th>
         <th data-sort="yesno">RSVP Sent</th>
         <th data-sort="yesno">Invite Sent</th>
+        <th data-sort="yesno">Bypass</th>
         <th></th>
       </tr>
     </thead>
@@ -63,7 +65,7 @@
         $sideLabel = $guest->side === 'groom' ? $wedding['groom'] : ($guest->side === 'bride' ? $wedding['bride'] : 'Other');
         $sideCls   = 'side-' . $guest->side;
       @endphp
-      <tr data-status="{{ $attStatus }}" data-side="{{ $guest->side }}" data-id="{{ $guest->id }}" data-rsvp-sent="{{ $guest->rsvp_sent ? '1' : '0' }}" data-invitation-sent="{{ $guest->invitation_sent ? '1' : '0' }}">
+      <tr data-status="{{ $attStatus }}" data-side="{{ $guest->side }}" data-id="{{ $guest->id }}" data-rsvp-sent="{{ $guest->rsvp_sent ? '1' : '0' }}" data-invitation-sent="{{ $guest->invitation_sent ? '1' : '0' }}" data-bypass="{{ $guest->rsvp_bypass ? '1' : '0' }}">
         <td style="padding-right:0"><input type="checkbox" class="row-cb" value="{{ $guest->id }}"></td>
         <td class="td-dim">{{ $i + 1 }}</td>
         <td class="td-hi">{{ $guest->mobile }}</td>
@@ -105,6 +107,13 @@
             @csrf
             <button type="submit" class="invitation-sent-btn {{ $guest->invitation_sent ? 'ceremony-yes' : 'ceremony-no' }}">{{ $guest->invitation_sent ? 'Yes' : 'No' }}</button>
           </form>
+        </td>
+        <td class="bypass-cell">
+          @if($guest->rsvp_bypass)
+            <span class="badge ceremony-yes bypass-badge">Yes</span>
+          @else
+            <span class="td-dim bypass-badge">—</span>
+          @endif
         </td>
         <td style="white-space:nowrap">
           <button class="edit-btn"

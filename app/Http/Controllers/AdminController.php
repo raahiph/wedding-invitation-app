@@ -233,6 +233,14 @@ class AdminController extends Controller
         return response()->json(['ok' => true, 'deleted' => $deleted]);
     }
 
+    public function bulkBypass(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $ids = array_filter(array_map('intval', (array) $request->input('ids', [])));
+        $anyWithout = Guest::whereIn('id', $ids)->where('rsvp_bypass', false)->exists();
+        Guest::whereIn('id', $ids)->update(['rsvp_bypass' => $anyWithout]);
+        return response()->json(['ok' => true, 'bypass' => $anyWithout]);
+    }
+
     public function importCsv(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate(['csv' => 'required|file|mimes:csv,txt|max:512']);

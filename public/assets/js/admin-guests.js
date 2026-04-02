@@ -8,18 +8,7 @@
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function showFlash(msg, err) {
-    let el = document.getElementById('add-flash');
-    if (!el) {
-      el = document.createElement('p');
-      el.id = 'add-flash'; el.className = 'flash';
-      document.getElementById('add-guest-form').after(el);
-    }
-    el.className = 'flash' + (err ? ' err' : '');
-    el.textContent = msg;
-    clearTimeout(el._t);
-    el._t = setTimeout(() => { el.textContent = ''; }, 4000);
-  }
+  function showFlash(msg, err) { showToast(msg, err); }
 
   function renumber() {
     tbody.querySelectorAll('tr[data-status]').forEach((r, i) => {
@@ -157,8 +146,9 @@
   const selectAll     = document.getElementById('select-all');
   const bulkBar       = document.getElementById('bulk-bar');
   const bulkCount     = document.getElementById('bulk-count');
-  const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
-  const bulkClearBtn  = document.getElementById('bulk-clear-btn');
+  const bulkDeleteBtn  = document.getElementById('bulk-delete-btn');
+  const bulkBypassBtn  = document.getElementById('bulk-bypass-btn');
+  const bulkClearBtn   = document.getElementById('bulk-clear-btn');
 
   function getChecked() {
     return [...tbody.querySelectorAll('.row-cb:checked')];
@@ -212,6 +202,32 @@
       })
       .catch(() => {})
       .finally(() => { bulkDeleteBtn.disabled = false; });
+  });
+
+  bulkBypassBtn.addEventListener('click', function () {
+    const checked = getChecked();
+    if (!checked.length) return;
+    const ids = checked.map(cb => cb.value);
+    bulkBypassBtn.disabled = true;
+    const body = new URLSearchParams({ _token: csrf });
+    ids.forEach(id => body.append('ids[]', id));
+    fetch('/admin/guests/bulk-bypass', { method: 'POST', headers: HDRS, body })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) return;
+        checked.forEach(cb => {
+          const row = cb.closest('tr');
+          row.dataset.bypass = d.bypass ? '1' : '0';
+          const badge = row.querySelector('.bypass-badge');
+          if (badge) {
+            badge.className   = d.bypass ? 'badge ceremony-yes bypass-badge' : 'td-dim bypass-badge';
+            badge.textContent = d.bypass ? 'Yes' : '—';
+          }
+        });
+        showToast((d.bypass ? 'Bypass granted' : 'Bypass removed') + ' for ' + checked.length + ' guest' + (checked.length === 1 ? '' : 's') + '.');
+      })
+      .catch(() => {})
+      .finally(() => { bulkBypassBtn.disabled = false; });
   });
 
   // ── Build new guest row ───────────────────────────
@@ -459,16 +475,7 @@
   // ── CSV Import ────────────────────────────────────
   const csvFile      = document.getElementById('csv-file');
   const csvImportBtn = document.getElementById('csv-import-btn');
-  const csvFlash     = document.getElementById('csv-flash');
   const csvFileLabel = document.getElementById('csv-file-label');
-
-  function showCsvFlash(msg, err) {
-    csvFlash.textContent = msg;
-    csvFlash.className = 'flash' + (err ? ' err' : '');
-    csvFlash.style.display = '';
-    clearTimeout(csvFlash._t);
-    csvFlash._t = setTimeout(() => { csvFlash.style.display = 'none'; }, 6000);
-  }
 
   if (csvFile) {
     csvFile.addEventListener('change', function () {
@@ -478,7 +485,7 @@
 
   if (csvImportBtn) {
     csvImportBtn.addEventListener('click', function () {
-      if (!csvFile.files.length) { showCsvFlash('Please select a CSV file.', true); return; }
+      if (!csvFile.files.length) { showToast('Please select a CSV file.', true); return; }
       const fd = new FormData();
       fd.append('csv', csvFile.files[0]);
       fd.append('_token', csrf);
@@ -488,12 +495,12 @@
         .then(d => {
           let msg = `Imported: ${d.imported}, Skipped (duplicates): ${d.skipped}`;
           if (d.errors.length) msg += `. Errors: ${d.errors.join('; ')}`;
-          showCsvFlash(msg, d.errors.length > 0);
+          showToast(msg, d.errors.length > 0);
           if (d.imported > 0) { refreshStats(); setTimeout(() => location.reload(), 1500); }
           csvFile.value = '';
           csvFileLabel.textContent = 'Choose CSV file…';
         })
-        .catch(() => showCsvFlash('Request failed.', true))
+        .catch(() => showToast('Request failed.', true))
         .finally(() => { csvImportBtn.disabled = false; });
     });
   }
