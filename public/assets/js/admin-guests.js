@@ -54,6 +54,7 @@
   const search          = document.getElementById('guest-search');
   const statusSel       = document.getElementById('guest-status');
   const sideSel         = document.getElementById('guest-side'); // null on guests page
+  const categorySel     = document.getElementById('guest-category');
   const rsvpSentSel     = document.getElementById('guest-rsvp-sent');
   const inviteSentSel   = document.getElementById('guest-invitation-sent');
   const filterClear     = document.getElementById('filter-clear');
@@ -64,6 +65,7 @@
     return search.value.trim() !== ''
       || statusSel.value !== ''
       || (sideSel && sideSel.value !== '')
+      || (categorySel && categorySel.value !== '')
       || rsvpSentSel.value !== ''
       || inviteSentSel.value !== '';
   }
@@ -72,6 +74,7 @@
     const q   = search.value.trim().toLowerCase();
     const s   = statusSel.value;
     const sd  = sideSel ? sideSel.value : '';
+    const cat = categorySel ? categorySel.value : '';
     const rs  = rsvpSentSel.value;
     const ins = inviteSentSel.value;
     const rows = tbody.querySelectorAll('tr[data-status]');
@@ -80,6 +83,7 @@
       const show = (!q   || row.textContent.toLowerCase().includes(q))
                 && (!s   || row.dataset.status         === s)
                 && (!sd  || row.dataset.side           === sd)
+                && (!cat || row.dataset.category       === cat)
                 && (!rs  || row.dataset.rsvpSent       === rs)
                 && (!ins || row.dataset.invitationSent === ins);
       row.style.display = show ? '' : 'none';
@@ -91,17 +95,19 @@
   }
 
   filterClear.addEventListener('click', function () {
-    search.value       = '';
-    statusSel.value    = '';
-    if (sideSel) sideSel.value = '';
-    rsvpSentSel.value  = '';
+    search.value        = '';
+    statusSel.value     = '';
+    if (sideSel)      sideSel.value      = '';
+    if (categorySel)  categorySel.value  = '';
+    rsvpSentSel.value   = '';
     inviteSentSel.value = '';
     filter();
   });
 
   search.addEventListener('input', filter);
   statusSel.addEventListener('change', filter);
-  if (sideSel) sideSel.addEventListener('change', filter);
+  if (sideSel)      sideSel.addEventListener('change', filter);
+  if (categorySel)  categorySel.addEventListener('change', filter);
   if (rsvpSentSel)   rsvpSentSel.addEventListener('change', filter);
   if (inviteSentSel) inviteSentSel.addEventListener('change', filter);
   filter();
@@ -236,13 +242,14 @@
     const sideCol = CFG.hasSideCol
       ? `<td><span class="badge side-${esc(g.side)} guest-side">${esc(sLabel)}</span></td>`
       : '';
-    return `<tr data-status="pending" data-side="${esc(g.side)}" data-id="${esc(g.id)}" data-rsvp-sent="0" data-invitation-sent="0">
+    return `<tr data-status="pending" data-side="${esc(g.side)}" data-id="${esc(g.id)}" data-rsvp-sent="0" data-invitation-sent="0" data-category="">
       <td style="padding-right:0"><input type="checkbox" class="row-cb" value="${esc(g.id)}"></td>
       <td class="td-dim"></td>
       <td class="td-hi">${esc(g.mobile)}</td>
       <td class="guest-name">${esc(g.name || '—')}</td>
       <td>${esc(g.nickname || '—')}</td>
       ${sideCol}
+      <td class="category-cell"><span class="td-dim cat-badge">—</span></td>
       <td><span class="badge attending-badge badge-pending">Pending</span></td>
       <td class="plus-ones">${esc(g.plus_ones ?? 0)}</td>
       <td><form method="POST" action="${esc(g.ceremony_url)}">
@@ -263,7 +270,7 @@
         <button class="edit-btn"
           data-url="${esc(g.update_url)}" data-mobile="${esc(g.mobile)}"
           data-name="" data-notes="${esc(g.notes)}"
-          data-side="${esc(g.side)}" data-attending="" data-plus="0"
+          data-side="${esc(g.side)}" data-category="" data-attending="" data-plus="0"
           data-nickname="${esc(g.nickname)}" data-ceremony="0" data-session="">Edit</button>
         <form method="POST" action="${esc(g.destroy_url)}" style="display:inline">
           <input type="hidden" name="_token" value="${esc(csrf)}">
@@ -382,6 +389,7 @@
     document.getElementById('modal-notes').value               = btn.dataset.notes     || '';
     document.getElementById('modal-nickname').value             = btn.dataset.nickname  || '';
     document.getElementById('modal-side').value                = btn.dataset.side      || 'other';
+    document.getElementById('modal-category').value           = btn.dataset.category  || '';
     document.getElementById('modal-attending').value           = btn.dataset.attending || '';
     document.getElementById('modal-plus').value                = btn.dataset.plus      || '0';
     document.getElementById('modal-ceremony').checked          = on;
@@ -408,21 +416,22 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
   modalSave.addEventListener('click', function () {
-    const mobile    = document.getElementById('modal-mobile-input').value;
-    const attending = document.getElementById('modal-attending').value;
-    const plusOnes  = document.getElementById('modal-plus').value;
-    const name      = document.getElementById('modal-name').value;
-    const notes     = document.getElementById('modal-notes').value;
-    const side      = document.getElementById('modal-side').value;
-    const nickname  = document.getElementById('modal-nickname').value;
-    const ceremony  = document.getElementById('modal-ceremony').checked ? '1' : '0';
-    const session   = document.getElementById('modal-session').value;
+    const mobile     = document.getElementById('modal-mobile-input').value;
+    const attending  = document.getElementById('modal-attending').value;
+    const plusOnes   = document.getElementById('modal-plus').value;
+    const name       = document.getElementById('modal-name').value;
+    const notes      = document.getElementById('modal-notes').value;
+    const side       = document.getElementById('modal-side').value;
+    const categoryId = document.getElementById('modal-category').value;
+    const nickname   = document.getElementById('modal-nickname').value;
+    const ceremony   = document.getElementById('modal-ceremony').checked ? '1' : '0';
+    const session    = document.getElementById('modal-session').value;
 
     modalSave.disabled = true; modalMsg.textContent = '';
 
     fetch(activeUrl, {
       method: 'POST', headers: HDRS,
-      body: new URLSearchParams({ _token: csrf, mobile, name, nickname, notes, side, attending, plus_ones: plusOnes, attends_ceremony: ceremony, session })
+      body: new URLSearchParams({ _token: csrf, mobile, name, nickname, notes, side, category_id: categoryId, attending, plus_ones: plusOnes, attends_ceremony: ceremony, session })
     })
     .then(r => r.json())
     .then(data => {
@@ -456,8 +465,22 @@
         ceremonyBtn.textContent = on ? 'Yes' : 'No';
       }
 
+      activeRow.dataset.category = data.category_id ?? '';
+      const catBadge = activeRow.querySelector('.cat-badge');
+      if (catBadge) {
+        if (data.category_name) {
+          catBadge.className   = 'badge cat-badge';
+          catBadge.style.cssText = 'background:#EAF1FB;color:#2A4E96;border-color:#C3D4F5';
+          catBadge.textContent = data.category_name;
+        } else {
+          catBadge.className   = 'td-dim cat-badge';
+          catBadge.style.cssText = '';
+          catBadge.textContent = '—';
+        }
+      }
+
       Object.assign(activeRow.querySelector('.edit-btn').dataset,
-        { mobile: data.mobile, name, nickname, notes, side, attending, plus: plusOnes, ceremony, session });
+        { mobile: data.mobile, name, nickname, notes, side, category: categoryId, attending, plus: plusOnes, ceremony, session });
       document.getElementById('modal-mobile').textContent = data.mobile;
 
       const sessionTd = activeRow.querySelectorAll('td')[CFG.sessionCol];

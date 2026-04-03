@@ -6,9 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Guest extends Model
 {
-    protected $fillable = ['mobile', 'name', 'nickname', 'notes', 'side', 'attends_ceremony', 'session', 'plus_ones', 'rsvp_sent', 'invitation_sent', 'rsvp_bypass'];
+    protected $fillable = ['mobile', 'name', 'nickname', 'notes', 'side', 'category_id', 'attends_ceremony', 'session', 'plus_ones', 'rsvp_sent', 'invitation_sent', 'rsvp_bypass'];
 
     protected $casts = ['attends_ceremony' => 'boolean', 'rsvp_sent' => 'boolean', 'invitation_sent' => 'boolean', 'rsvp_bypass' => 'boolean'];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     public function rsvp()
     {

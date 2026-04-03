@@ -249,6 +249,104 @@
 
 </form>
 
+{{-- ── Guest Categories ──────────────────────────────────────────── --}}
+<div class="card" style="margin-top:24px">
+  <p class="card-title">Guest Categories</p>
+  <p style="font-size:12px;color:#8E9BAB;margin-bottom:14px;">Categories like Family, Bridesmaid, Groomsmen, etc. Assign them to guests from the guest table.</p>
+
+  <div class="csv-row" style="margin-bottom:14px">
+    <input class="form-input" type="text" id="cat-name-input" placeholder="New category name…" maxlength="60" style="flex:1;min-width:160px">
+    <button class="form-btn" id="cat-add-btn">Add</button>
+  </div>
+
+  <div id="cat-list">
+    @forelse($categories as $cat)
+    <div class="cat-item" data-id="{{ $cat->id }}">
+      <span class="cat-name">{{ $cat->name }}</span>
+      <button class="cat-del-btn" data-id="{{ $cat->id }}" data-name="{{ $cat->name }}" title="Remove">✕</button>
+    </div>
+    @empty
+    <p id="cat-empty" style="font-size:12px;color:#8E9BAB">No categories yet.</p>
+    @endforelse
+  </div>
+</div>
+
+<script>
+(function () {
+  const csrf    = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  const input   = document.getElementById('cat-name-input');
+  const addBtn  = document.getElementById('cat-add-btn');
+  const list    = document.getElementById('cat-list');
+
+  function removeEmpty() {
+    const empty = document.getElementById('cat-empty');
+    if (empty) empty.remove();
+  }
+
+  function buildItem(id, name) {
+    const div = document.createElement('div');
+    div.className = 'cat-item';
+    div.dataset.id = id;
+    div.innerHTML = `<span class="cat-name">${name.replace(/</g,'&lt;')}</span>`
+      + `<button class="cat-del-btn" data-id="${id}" data-name="${name.replace(/"/g,'&quot;')}" title="Remove">✕</button>`;
+    div.querySelector('.cat-del-btn').addEventListener('click', handleDelete);
+    return div;
+  }
+
+  addBtn.addEventListener('click', function () {
+    const name = input.value.trim();
+    if (!name) return;
+    addBtn.disabled = true;
+    fetch('{{ route('admin.categories.store') }}', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ _token: csrf, name }),
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (!d.ok) { showToast(d.message, true); return; }
+      removeEmpty();
+      list.appendChild(buildItem(d.category.id, d.category.name));
+      input.value = '';
+      showToast('Category added.');
+    })
+    .catch(() => showToast('Request failed.', true))
+    .finally(() => { addBtn.disabled = false; });
+  });
+
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addBtn.click(); } });
+
+  function handleDelete(e) {
+    const btn  = e.currentTarget;
+    const id   = btn.dataset.id;
+    const name = btn.dataset.name;
+    if (!confirm(`Remove category "${name}"? Guests in this category will be uncategorised.`)) return;
+    btn.disabled = true;
+    fetch(`/admin/categories/${id}`, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ _token: csrf, _method: 'DELETE' }),
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (!d.ok) { showToast('Delete failed.', true); return; }
+      btn.closest('.cat-item').remove();
+      if (!list.querySelector('.cat-item')) {
+        const p = document.createElement('p');
+        p.id = 'cat-empty'; p.style.cssText = 'font-size:12px;color:#8E9BAB';
+        p.textContent = 'No categories yet.';
+        list.appendChild(p);
+      }
+      showToast(`Category "${name}" removed.`);
+    })
+    .catch(() => showToast('Request failed.', true))
+    .finally(() => { btn.disabled = false; });
+  }
+
+  document.querySelectorAll('.cat-del-btn').forEach(btn => btn.addEventListener('click', handleDelete));
+})();
+</script>
+
 <script>
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];

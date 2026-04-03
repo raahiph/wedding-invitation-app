@@ -730,7 +730,7 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
   <div class="swatches">
     <div class="sw"><div class="sw-c" style="background:#152f4a;"></div><p class="sw-name">Deep Navy</p></div>
     <div class="sw"><div class="sw-c" style="background:#3f6594;"></div><p class="sw-name">Ocean Blue</p></div>
-    <div class="sw"><div class="sw-c" style="background:#718db5;"></div><p class="sw-name">Steel Blue</p></div>
+    <!-- <div class="sw"><div class="sw-c" style="background:#718db5;"></div><p class="sw-name">Steel Blue</p></div> -->
     <div class="sw"><div class="sw-c" style="background:#a0c2e8;"></div><p class="sw-name">Powder Blue</p></div>
     <div class="sw"><div class="sw-c" style="background:#c2dcf7;"></div><p class="sw-name">Sky Mist</p></div>
     <div class="sw"><div class="sw-c" style="background:#e1e5e8;"></div><p class="sw-name">Silver Grey</p></div>

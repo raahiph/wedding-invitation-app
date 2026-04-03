@@ -303,6 +303,21 @@ tbody tr:hover td { background:#F7F9FB; }
 }
 .bulk-clear-btn:hover { border-color:rgba(255,255,255,0.35); color:#D4E0EC; }
 
+/* ─── Categories ────────────────────────────────── */
+.cat-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:7px 10px; border-radius:6px; margin-bottom:4px;
+  background:#F2F5F8; font-size:12px; color:#3A4F65;
+}
+.cat-item:last-child { margin-bottom:0; }
+.cat-name { font-weight:500; }
+.cat-del-btn {
+  background:none; border:none; cursor:pointer; color:#9AA9B8;
+  font-size:11px; padding:2px 5px; border-radius:4px;
+  transition:color 0.15s, background 0.15s;
+}
+.cat-del-btn:hover { color:#C0392B; background:#FBE9E7; }
+
 /* ─── CSV Import ─────────────────────────────────── */
 .csv-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .csv-label {

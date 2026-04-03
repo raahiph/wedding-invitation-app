@@ -16,6 +16,12 @@
     <option value="other">Other</option>
   </select>
   @endif
+  <select class="form-input tbl-select" id="guest-category">
+    <option value="">All categories</option>
+    @foreach($categories as $cat)
+    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+    @endforeach
+  </select>
   <select class="form-input tbl-select" id="guest-rsvp-sent">
     <option value="">All (RSVP link)</option>
     <option value="1">RSVP link sent</option>
@@ -47,6 +53,7 @@
         <th data-sort="text">Name</th>
         <th data-sort="text">Nickname</th>
         @if($showSide)<th data-sort="text">Side</th>@endif
+        <th data-sort="text">Category</th>
         <th data-sort="status">Attending</th>
         <th data-sort="num">+Guests</th>
         <th data-sort="yesno">Ceremony</th>
@@ -65,7 +72,7 @@
         $sideLabel = $guest->side === 'groom' ? $wedding['groom'] : ($guest->side === 'bride' ? $wedding['bride'] : 'Other');
         $sideCls   = 'side-' . $guest->side;
       @endphp
-      <tr data-status="{{ $attStatus }}" data-side="{{ $guest->side }}" data-id="{{ $guest->id }}" data-rsvp-sent="{{ $guest->rsvp_sent ? '1' : '0' }}" data-invitation-sent="{{ $guest->invitation_sent ? '1' : '0' }}" data-bypass="{{ $guest->rsvp_bypass ? '1' : '0' }}">
+      <tr data-status="{{ $attStatus }}" data-side="{{ $guest->side }}" data-id="{{ $guest->id }}" data-rsvp-sent="{{ $guest->rsvp_sent ? '1' : '0' }}" data-invitation-sent="{{ $guest->invitation_sent ? '1' : '0' }}" data-bypass="{{ $guest->rsvp_bypass ? '1' : '0' }}" data-category="{{ $guest->category_id ?? '' }}">
         <td style="padding-right:0"><input type="checkbox" class="row-cb" value="{{ $guest->id }}"></td>
         <td class="td-dim">{{ $i + 1 }}</td>
         <td class="td-hi">{{ $guest->mobile }}</td>
@@ -74,6 +81,13 @@
         @if($showSide)
         <td><span class="badge {{ $sideCls }} guest-side">{{ $sideLabel }}</span></td>
         @endif
+        <td class="category-cell">
+          @if($guest->category)
+            <span class="badge cat-badge" style="background:#EAF1FB;color:#2A4E96;border-color:#C3D4F5">{{ $guest->category->name }}</span>
+          @else
+            <span class="td-dim cat-badge">—</span>
+          @endif
+        </td>
         <td>
           <span class="badge attending-badge badge-{{ $attStatus }}">
             {{ $attStatus === 'yes' ? 'Yes' : ($attStatus === 'no' ? 'No' : 'Pending') }}
@@ -122,6 +136,7 @@
             data-name="{{ $guest->name }}"
             data-notes="{{ $guest->notes }}"
             data-side="{{ $guest->side }}"
+            data-category="{{ $guest->category_id ?? '' }}"
             data-attending="{{ $attStatus === 'pending' ? '' : $attStatus }}"
             data-plus="{{ $guest->plus_ones }}"
             data-nickname="{{ $guest->nickname ?? '' }}"
@@ -135,10 +150,11 @@
       </tr>
       @empty
       <tr>
-        <td colspan="{{ $showSide ? 14 : 13 }}" style="text-align:center;color:#8FA3B8;padding:32px;">
+        <td colspan="{{ $showSide ? 15 : 14 }}" style="text-align:center;color:#8FA3B8;padding:32px;">
           {{ $emptyMessage ?? 'No guests yet.' }}
         </td>
       </tr>
+      {{-- colspan bumped by 1 for category column --}}
       @endforelse
     </tbody>
   </table>

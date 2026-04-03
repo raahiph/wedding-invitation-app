@@ -40,6 +40,17 @@
           </select>
         </div>
         <div class="s-field">
+          <label>Category</label>
+          <select class="form-input" style="width:100%" id="modal-category">
+            <option value="">— None —</option>
+            @foreach($categories as $cat)
+            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+            @endforeach
+          </select>
+        </div>
+      </div>
+      <div class="s-grid2">
+        <div class="s-field">
           <label>Attending</label>
           <select class="form-input" style="width:100%" id="modal-attending">
             <option value="">Pending</option>
@@ -47,8 +58,6 @@
             <option value="no">No</option>
           </select>
         </div>
-      </div>
-      <div class="s-grid2">
         <div class="s-field">
           <label>+Guests</label>
           <select class="form-input" style="width:100%" id="modal-plus">
@@ -57,6 +66,8 @@
             @endfor
           </select>
         </div>
+      </div>
+      <div class="s-grid2">
         <div class="s-field">
           <label>Attends Ceremony</label>
           <div style="display:flex;align-items:center;gap:10px;padding-top:6px">

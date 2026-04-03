@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Guest;
 use App\Models\Photo;
 use App\Models\Rsvp;
@@ -46,7 +47,8 @@ class AdminController extends Controller
 
     public function index()
     {
-        $guests = Guest::with('rsvp')->latest()->limit(2000)->get();
+        $guests     = Guest::with('rsvp', 'category')->latest()->limit(2000)->get();
+        $categories = Category::orderBy('name')->get();
 
         $totalGuests    = $guests->count();
         $totalAttending = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
@@ -60,7 +62,7 @@ class AdminController extends Controller
 
         $rsvpMode = file_exists(storage_path('app/rsvp_mode'));
 
-        return view('admin.index', compact('guests', 'totalGuests', 'totalAttending', 'totalHeads', 'groomCount', 'brideCount', 'rsvpSentCount', 'inviteSentCount', 'estHeadcount', 'rsvpMode'));
+        return view('admin.index', compact('guests', 'categories', 'totalGuests', 'totalAttending', 'totalHeads', 'groomCount', 'brideCount', 'rsvpSentCount', 'inviteSentCount', 'estHeadcount', 'rsvpMode'));
     }
 
     public function toggleCountdown(Request $request)
@@ -155,7 +157,12 @@ class AdminController extends Controller
             $guest->mobile = $newMobile;
         }
 
-        $guest->update(['name' => $name, 'nickname' => $nickname, 'notes' => $notes, 'side' => $side, 'attends_ceremony' => $attendsCeremony, 'session' => $session, 'plus_ones' => $plusOnes]);
+        $categoryId = $request->input('category_id') ? (int) $request->input('category_id') : null;
+        if ($categoryId && !Category::where('id', $categoryId)->exists()) {
+            $categoryId = null;
+        }
+
+        $guest->update(['name' => $name, 'nickname' => $nickname, 'notes' => $notes, 'side' => $side, 'category_id' => $categoryId, 'attends_ceremony' => $attendsCeremony, 'session' => $session, 'plus_ones' => $plusOnes]);
 
         if ($attending === '') {
             $guest->rsvp()->delete();
@@ -166,7 +173,13 @@ class AdminController extends Controller
             );
         }
 
-        return response()->json(['ok' => true, 'mobile' => $guest->mobile]);
+        $guest->load('category');
+        return response()->json([
+            'ok'           => true,
+            'mobile'       => $guest->mobile,
+            'category_id'  => $guest->category_id,
+            'category_name' => $guest->category?->name ?? '',
+        ]);
     }
 
     public function toggleCeremony(Guest $guest)
@@ -192,7 +205,8 @@ class AdminController extends Controller
 
     public function guestList(string $side)
     {
-        $guests = Guest::with('rsvp')->where('side', $side)->latest()->limit(2000)->get();
+        $guests     = Guest::with('rsvp', 'category')->where('side', $side)->latest()->limit(2000)->get();
+        $categories = Category::orderBy('name')->get();
 
         $totalGuests     = $guests->count();
         $totalAttending  = $guests->filter(fn($g) => $g->rsvp && $g->rsvp->attending)->count();
@@ -202,7 +216,7 @@ class AdminController extends Controller
         $rsvpSentCount   = $guests->where('rsvp_sent', true)->count();
         $inviteSentCount = $guests->where('invitation_sent', true)->count();
 
-        return view('admin.guests', compact('guests', 'side', 'totalGuests', 'totalAttending', 'totalHeads', 'estHeadcount', 'rsvpSentCount', 'inviteSentCount'));
+        return view('admin.guests', compact('guests', 'categories', 'side', 'totalGuests', 'totalAttending', 'totalHeads', 'estHeadcount', 'rsvpSentCount', 'inviteSentCount'));
     }
 
     public function stats()
@@ -239,6 +253,27 @@ class AdminController extends Controller
         $anyWithout = Guest::whereIn('id', $ids)->where('rsvp_bypass', false)->exists();
         Guest::whereIn('id', $ids)->update(['rsvp_bypass' => $anyWithout]);
         return response()->json(['ok' => true, 'bypass' => $anyWithout]);
+    }
+
+    public function storeCategory(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $name = substr(trim($request->input('name', '')), 0, 60);
+        if (!$name) {
+            return response()->json(['ok' => false, 'message' => 'Name is required.'], 422);
+        }
+        if (Category::where('name', $name)->exists()) {
+            return response()->json(['ok' => false, 'message' => 'Category already exists.'], 422);
+        }
+        $category = Category::create(['name' => $name]);
+        return response()->json(['ok' => true, 'category' => ['id' => $category->id, 'name' => $category->name]]);
+    }
+
+    public function destroyCategory(Category $category): \Illuminate\Http\JsonResponse
+    {
+        // Unset category from guests before deleting
+        $category->guests()->update(['category_id' => null]);
+        $category->delete();
+        return response()->json(['ok' => true]);
     }
 
     public function importCsv(Request $request): \Illuminate\Http\JsonResponse
@@ -320,7 +355,9 @@ class AdminController extends Controller
             if ($dt) $settings['rsvp_by_raw'] = $dt->format('Y-m-d');
         }
 
-        return view('admin.settings', compact('settings'));
+        $categories = Category::orderBy('name')->get();
+
+        return view('admin.settings', compact('settings', 'categories'));
     }
 
     public function updateSettings(Request $request)

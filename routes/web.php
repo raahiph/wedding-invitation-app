@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\GateController;
 use App\Http\Controllers\RsvpController;
+use App\Models\Category;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
 
@@ -122,6 +123,8 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::get('/stats', [AdminController::class, 'stats'])->name('stats');
     Route::get('/settings', [AdminController::class, 'showSettings'])->name('settings');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+    Route::post('/categories', [AdminController::class, 'storeCategory'])->name('categories.store');
+    Route::delete('/categories/{category}', [AdminController::class, 'destroyCategory'])->name('categories.destroy');
     Route::get('/gallery', [GalleryController::class, 'adminIndex'])->name('gallery');
     Route::delete('/gallery/{photo}', [GalleryController::class, 'destroy'])->name('gallery.destroy');
 });
