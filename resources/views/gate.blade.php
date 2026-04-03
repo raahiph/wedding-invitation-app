@@ -17,7 +17,7 @@
 <meta property="og:title" content="{{ $ogTitle }}">
 <meta property="og:description" content="{{ $ogDesc }}">
 <meta property="og:type" content="website">
-<meta property="og:image" content="{{ config('app.url') }}/assets/img/og-cover.png">
+<meta property="og:image" content="{{ config('app.url') }}/assets/img/{{ $rsvpMode ? 'og-cover.png' : 'og-cover-invite.png' }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">

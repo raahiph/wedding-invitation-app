@@ -10,7 +10,7 @@
 <meta property="og:title" content="{{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — Wedding Invitation">
 <meta property="og:description" content="You're invited to the wedding of {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }} — {{ $wedding['date'] }}, {{ $wedding['venue'] }}, {{ $wedding['city'] }}.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="{{ config('app.url') }}/assets/img/og-cover.png">
+<meta property="og:image" content="{{ config('app.url') }}/assets/img/og-cover-invite.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
