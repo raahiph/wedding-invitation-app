@@ -22,6 +22,7 @@ class SettingsSeeder extends Seeder
         $defaults = config('wedding');
 
         foreach ($defaults as $key => $value) {
+            if (is_array($value)) continue;
             if ($force) {
                 Setting::updateOrCreate(['key' => $key], ['value' => $value]);
             } else {
