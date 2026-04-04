@@ -351,11 +351,39 @@ body::before {
 .palette-title em { font-style:italic; color:var(--navy); }
 .palette-rule { width:40px; height:1px; background:linear-gradient(to right,var(--navy),var(--blue-grey)); margin:0 auto 14px; }
 .palette-note { font-family:'Montserrat',sans-serif; font-style:italic; font-size:16px; color:var(--muted); line-height:1.7; margin-bottom:56px; }
-.swatches { display:flex; justify-content:center; gap:30px; flex-wrap:wrap; }
+.swatches { display:flex; justify-content:center; gap:36px; flex-wrap:wrap; }
+.swatches + .swatches { margin-top:40px; }
 .sw { display:flex; flex-direction:column; align-items:center; gap:12px; }
-.sw-c { width:80px; height:80px; border-radius:50%; transition:transform 0.35s ease, box-shadow 0.35s ease; cursor:pointer; }
-.sw:hover .sw-c { transform:translateY(-7px) scale(1.1); box-shadow:0 18px 40px rgba(34,48,74,0.25); }
+
+/* Camera focus bracket wrapper */
+.sw-focus {
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  padding:10px;
+}
+.fc {
+  position:absolute; width:13px; height:13px;
+  border-color:rgba(34,48,74,0.28); border-style:solid;
+  transition:border-color 0.3s;
+}
+.sw:hover .fc { border-color:rgba(34,48,74,0.7); }
+.fc-tl { top:0; left:0;  border-width:2px 0 0 2px; }
+.fc-tr { top:0; right:0; border-width:2px 2px 0 0; }
+.fc-bl { bottom:0; left:0;  border-width:0 0 2px 2px; }
+.fc-br { bottom:0; right:0; border-width:0 2px 2px 0; }
+
+.sw-c { border-radius:50%; transition:transform 0.35s ease, box-shadow 0.35s ease; cursor:pointer; }
+.swatches-main  .sw-c { width:80px; height:80px; }
+.swatches-group .sw-c { width:110px; height:110px; }
+.sw:hover .sw-c { transform:translateY(-6px) scale(1.08); box-shadow:0 16px 36px rgba(34,48,74,0.22); }
+
 .sw-name { font-size:9px; letter-spacing:0.22em; text-transform:uppercase; color:var(--muted); font-weight:400; }
+.sw-cat  { font-size:8px; letter-spacing:0.12em; text-transform:uppercase; color:var(--navy); font-weight:600; margin-top:3px; }
+.palette-personal-note {
+  font-family:'Montserrat',sans-serif; font-size:13px; font-weight:400;
+  color:var(--muted); line-height:1.7; margin-bottom:28px;
+}
+.palette-personal-note em { font-style:italic; color:var(--navy); font-weight:500; }
 .sw-hex { font-family:'Montserrat',sans-serif; font-size:13px; font-style:italic; color:var(--blue-grey); }
 
 /* ══════════════════════════════
@@ -405,7 +433,8 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
   .dcard.d3 .dcard-icon { margin-bottom:0; flex-shrink:0; }
   .rsvp-form-side { padding:52px 28px; }
   .swatches { gap:18px; }
-  .sw-c { width:60px; height:60px; }
+  .swatches-main  .sw-c { width:58px; height:58px; }
+  .swatches-group .sw-c { width:80px; height:80px; }
 }
 .cal-wrap { margin-top:40px; text-align:center; }
 .cal-btn {
@@ -651,7 +680,17 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
             <div class="dc-gender">
               <p class="dc-gender-lbl">Gents</p>
               <p class="dcard-main">{{ $wedding['dress_code_gents'] }}</p>
-              @if(!empty($wedding['dress_note_gents']))<p class="dcard-sub">{{ $wedding['dress_note_gents'] }}</p>@endif
+              @if(!empty($wedding['dress_note_gents']))
+              @php
+                $gentsNote = $wedding['dress_note_gents'];
+                if ($guest?->category?->name === 'Groomsman' && $guest->category->color) {
+                    $colorName = collect($wedding['palette_items'])->firstWhere('color', strtolower($guest->category->color))['name']
+                        ?? $guest->category->color;
+                    $gentsNote = 'White Shirt & ' . $colorName . ' Pants';
+                }
+              @endphp
+              <p class="dcard-sub">{{ $gentsNote }}</p>
+              @endif
             </div>
           </div>
         @else
@@ -727,15 +766,57 @@ footer { background:var(--navy); padding:90px 40px; text-align:center; }
   <h2 class="palette-title">Colors of <em>our day</em></h2>
   <div class="palette-rule"></div>
   <p class="palette-note">"Every color has a story — ours is written in these hues."</p>
-  <div class="swatches">
-    <div class="sw"><div class="sw-c" style="background:#152f4a;"></div><p class="sw-name">Deep Navy</p></div>
-    <div class="sw"><div class="sw-c" style="background:#3f6594;"></div><p class="sw-name">Ocean Blue</p></div>
-    <!-- <div class="sw"><div class="sw-c" style="background:#718db5;"></div><p class="sw-name">Steel Blue</p></div> -->
-    <div class="sw"><div class="sw-c" style="background:#a0c2e8;"></div><p class="sw-name">Powder Blue</p></div>
-    <div class="sw"><div class="sw-c" style="background:#c2dcf7;"></div><p class="sw-name">Sky Mist</p></div>
-    <div class="sw"><div class="sw-c" style="background:#e1e5e8;"></div><p class="sw-name">Silver Grey</p></div>
-    <div class="sw"><div class="sw-c" style="background:#22304A;"></div><p class="sw-name">Navy</p></div>
+  @php
+    $myColor      = $guest?->category?->color ? strtolower($guest->category->color) : null;
+    $myLabel      = $myColor ? $guest->category->name : null;
+    $claimedColors = array_map('strtolower', $claimedColors ?? []);
+
+    $groupSwatches   = $myColor
+        ? array_filter($wedding['palette_items'], fn($s) => strtolower($s['color']) === $myColor)
+        : [];
+    $regularSwatches = array_filter(
+        $wedding['palette_items'],
+        fn($s) => !in_array(strtolower($s['color']), $claimedColors)
+    );
+  @endphp
+
+  @if(count($groupSwatches))
+  @php
+    $nick = $guest?->nickname ?: $guest?->name ?: 'Dear Guest';
+    $catName = $guest?->category?->name;
+    if ($catName === 'Bridesmaid') {
+        $paletteNote = $nick . ', you\'ll be walking alongside the bride in this color. Wear it with pride.';
+    } elseif ($catName === 'Groomsman') {
+        $paletteNote ='Yo ' . $nick . ', as my groomsmen join the gang in this shade of gray.';
+    } else {
+        $paletteNote = $nick . ', as our ' . $myLabel . ', this is your color for the day.';
+    }
+  @endphp
+  <p class="palette-personal-note">{{ $paletteNote }}</p>
+  <div class="swatches swatches-group">
+    @foreach($groupSwatches as $swatch)
+    <div class="sw">
+      <div class="sw-focus">
+        <span class="fc fc-tl"></span><span class="fc fc-tr"></span>
+        <span class="fc fc-bl"></span><span class="fc fc-br"></span>
+        <div class="sw-c" style="background:{{ $swatch['color'] }};"></div>
+      </div>
+      <p class="sw-name">{{ $swatch['name'] }}</p>
+    </div>
+    @endforeach
   </div>
+  @endif
+
+  @if(count($regularSwatches))
+  <div class="swatches swatches-main">
+    @foreach($regularSwatches as $swatch)
+    <div class="sw">
+      <div class="sw-c" style="background:{{ $swatch['color'] }};"></div>
+      <p class="sw-name">{{ $swatch['name'] }}</p>
+    </div>
+    @endforeach
+  </div>
+  @endif
 </div>
 
 <!-- ══════════════ GALLERY PREVIEW ══════════════ -->

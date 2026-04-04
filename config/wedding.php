@@ -35,6 +35,25 @@ return [
     'wedding_end_raw'     => '19:30',
     'wedding_time_words'  => 'from four forty-five until seven thirty in the evening',
 
+    // Default guest categories
+    'categories' => [
+        ['name' => 'Bridesmaid'],
+        ['name' => 'Groomsman'],
+    ],
+
+    // Color palette (JSON array of {color, name} objects)
+    'palette' => json_encode([
+        ['color' => '#152f4a', 'name' => 'Deep Navy'],
+        ['color' => '#22304a', 'name' => 'Navy'],
+        ['color' => '#194569', 'name' => 'Deep Sea'],
+        ['color' => '#3f6594', 'name' => 'Ocean Blue'],
+        ['color' => '#718db5', 'name' => 'Steel Blue'],
+        ['color' => '#a0c2e8', 'name' => 'Powder Blue'],
+        ['color' => '#c2dcf7', 'name' => 'Sky Mist'],
+        ['color' => '#cadeed', 'name' => 'Sky Blue'],
+        ['color' => '#e1e5e8', 'name' => 'Silver Grey'],
+    ]),
+
     // Reception sessions
     'session1_start'      => '5:30 pm',
     'session1_end'        => '6:30 pm',

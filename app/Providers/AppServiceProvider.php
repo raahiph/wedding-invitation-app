@@ -50,7 +50,12 @@ class AppServiceProvider extends ServiceProvider
             } catch (\Exception) {
                 $saved = [];
             }
-            $view->with('wedding', array_merge($defaults, $saved));
+            $merged = array_merge($defaults, $saved);
+
+            // Decode palette JSON into an array for views
+            $merged['palette_items'] = json_decode($merged['palette'] ?? '[]', true) ?: [];
+
+            $view->with('wedding', $merged);
         });
     }
 }

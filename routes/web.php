@@ -72,11 +72,12 @@ if (file_exists(storage_path('app/rsvp_mode'))) {
     Route::middleware('guest.verified')->group(function () use ($calendarRoute) {
         Route::get('/calendar.ics', $calendarRoute)->name('calendar.ics');
         Route::get('/{any?}', function () {
-            $guest = \App\Models\Guest::find(session('guest_id'));
+            $guest = \App\Models\Guest::with('category')->find(session('guest_id'));
             $rsvp  = $guest?->rsvp;
             if ($guest?->rsvp_bypass) {
-                $recentPhotos = \App\Models\Photo::where('approved', true)->latest()->take(4)->get();
-                return view('invitation', compact('rsvp', 'guest', 'recentPhotos'));
+                $recentPhotos  = \App\Models\Photo::where('approved', true)->latest()->take(4)->get();
+                $claimedColors = \App\Models\Category::whereNotNull('color')->pluck('color')->map(fn($c) => strtolower($c))->all();
+                return view('invitation', compact('rsvp', 'guest', 'recentPhotos', 'claimedColors'));
             }
             return view('rsvp', compact('guest', 'rsvp'));
         })->where('any', '(?!gate|admin|gallery|upload).*');
@@ -86,10 +87,11 @@ if (file_exists(storage_path('app/rsvp_mode'))) {
     // ── Invitation pages (protected) ─────────────────────────────────────────
     Route::middleware('guest.verified')->group(function () use ($calendarRoute) {
         Route::get('/', function () {
-            $guest        = \App\Models\Guest::find(session('guest_id'));
-            $rsvp         = $guest?->rsvp;
-            $recentPhotos = \App\Models\Photo::where('approved', true)->latest()->take(4)->get();
-            return view('invitation', compact('rsvp', 'guest', 'recentPhotos'));
+            $guest         = \App\Models\Guest::with('category')->find(session('guest_id'));
+            $rsvp          = $guest?->rsvp;
+            $recentPhotos  = \App\Models\Photo::where('approved', true)->latest()->take(4)->get();
+            $claimedColors = \App\Models\Category::whereNotNull('color')->pluck('color')->map(fn($c) => strtolower($c))->all();
+            return view('invitation', compact('rsvp', 'guest', 'recentPhotos', 'claimedColors'));
         })->name('invitation');
         Route::get('/rsvp', function () {
             $guest = \App\Models\Guest::find(session('guest_id'));
@@ -124,6 +126,7 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::get('/settings', [AdminController::class, 'showSettings'])->name('settings');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
     Route::post('/categories', [AdminController::class, 'storeCategory'])->name('categories.store');
+    Route::post('/categories/{category}/color', [AdminController::class, 'updateCategoryColor'])->name('categories.color');
     Route::delete('/categories/{category}', [AdminController::class, 'destroyCategory'])->name('categories.destroy');
     Route::get('/gallery', [GalleryController::class, 'adminIndex'])->name('gallery');
     Route::delete('/gallery/{photo}', [GalleryController::class, 'destroy'])->name('gallery.destroy');

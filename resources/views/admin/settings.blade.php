@@ -5,8 +5,35 @@
 @section('page-subtitle', 'Edit the details shown across the invitation')
 
 @section('content')
+<link rel="stylesheet" href="/assets/js/coloris.min.css">
+<script src="/assets/js/coloris.min.js"></script>
 
 <style>
+.palette-row {
+  display:flex; align-items:center; gap:8px; margin-bottom:8px;
+  transition:opacity 0.15s;
+}
+.palette-row.dragging { opacity:0.35; }
+.palette-row.drag-over { outline:2px dashed #4A6FA5; border-radius:6px; }
+.palette-drag-handle {
+  cursor:grab; color:#B0BFCC; flex-shrink:0; padding:0 2px; user-select:none;
+  font-size:14px; line-height:1;
+}
+.palette-drag-handle:active { cursor:grabbing; }
+.clr-field {
+  display:inline-block; position:relative;
+  width:38px; height:38px; flex-shrink:0;
+}
+.clr-field input.palette-color-input {
+  position:absolute; inset:0; width:100%; height:100%;
+  opacity:0; cursor:pointer; z-index:1; border:none; padding:0; margin:0;
+}
+.clr-field > button {
+  position:absolute !important; width:100% !important; height:100% !important;
+  right:0 !important; top:0 !important; transform:none !important;
+  border-radius:6px !important; border:none !important;
+  pointer-events:none !important; z-index:0;
+}
 .preview-row { display:flex; gap:8px; margin-top:9px; flex-wrap:wrap; }
 .preview-chip {
   display:inline-flex; align-items:center; gap:5px;
@@ -241,6 +268,26 @@
     </div>
   </div>
 
+  {{-- Color Palette --}}
+  <div class="card">
+    <p class="card-title">Color Palette</p>
+    <p style="font-size:12px;color:#8E9BAB;margin-bottom:16px;">These colors appear in the "Colors of our day" section on the invitation.</p>
+
+    <div id="palette-list">
+      @php $paletteItems = json_decode($settings['palette'] ?? '[]', true) ?: []; @endphp
+      @foreach($paletteItems as $i => $swatch)
+      <div class="palette-row" data-index="{{ $i }}" draggable="true">
+        <span class="palette-drag-handle" title="Drag to reorder">⠿</span>
+        <input type="text" class="form-input palette-color-input" name="palette[{{ $i }}][color]" value="{{ $swatch['color'] }}" data-coloris placeholder="#000000" maxlength="7">
+        <input class="form-input palette-name-input" type="text" name="palette[{{ $i }}][name]" value="{{ $swatch['name'] }}" placeholder="Color name" maxlength="40" style="flex:1">
+        <button type="button" class="cat-del-btn palette-remove-btn" title="Remove">✕</button>
+      </div>
+      @endforeach
+    </div>
+
+    <button type="button" class="form-btn" id="palette-add-btn" style="margin-top:12px;background:#F2F5F8;color:#3A4F65;border:1px solid #C8D3DE;">+ Add Color</button>
+  </div>
+
   <button type="submit" class="s-save">Save Settings</button>
 
   @if(session('settings_saved'))
@@ -261,8 +308,24 @@
 
   <div id="cat-list">
     @forelse($categories as $cat)
-    <div class="cat-item" data-id="{{ $cat->id }}">
-      <span class="cat-name">{{ $cat->name }}</span>
+    @php $paletteItems = json_decode($settings['palette'] ?? '[]', true) ?: []; @endphp
+    <div class="cat-item" data-id="{{ $cat->id }}" data-color="{{ $cat->color ?? '' }}">
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        <div class="cat-color-swatch" style="background:{{ $cat->color ?? '#e1e5e8' }};" title="Change color"></div>
+        <span class="cat-name">{{ $cat->name }}</span>
+      </div>
+      <div class="cat-palette-picker">
+        <div class="cat-color-item">
+          <button type="button" class="cat-color-opt-none" data-color="" title="None">✕</button>
+          <span class="cat-color-lbl">None</span>
+        </div>
+        @foreach($paletteItems as $sw)
+        <div class="cat-color-item">
+          <button type="button" class="cat-color-opt {{ $cat->color === $sw['color'] ? 'selected' : '' }}" data-color="{{ $sw['color'] }}" style="background:{{ $sw['color'] }};"></button>
+          <span class="cat-color-lbl">{{ $sw['name'] }}</span>
+        </div>
+        @endforeach
+      </div>
       <button class="cat-del-btn" data-id="{{ $cat->id }}" data-name="{{ $cat->name }}" title="Remove">✕</button>
     </div>
     @empty
@@ -283,15 +346,73 @@
     if (empty) empty.remove();
   }
 
-  function buildItem(id, name) {
+  // Palette swatches available (from server)
+  const paletteSwatches = @json($paletteItems ?? []);
+
+  function buildSwatchPicker(currentColor) {
+    const noneItem = `<div class="cat-color-item"><button type="button" class="cat-color-opt-none" data-color="" title="None">✕</button><span class="cat-color-lbl">None</span></div>`;
+    const swItems = paletteSwatches.map(sw =>
+      `<div class="cat-color-item"><button type="button" class="cat-color-opt${currentColor === sw.color ? ' selected' : ''}" data-color="${sw.color}" style="background:${sw.color};"></button><span class="cat-color-lbl">${sw.name.replace(/</g,'&lt;')}</span></div>`
+    ).join('');
+    return `<div class="cat-palette-picker">${noneItem}${swItems}</div>`;
+  }
+
+  function buildItem(id, name, color) {
+    const swatchBg = color || '#e1e5e8';
     const div = document.createElement('div');
     div.className = 'cat-item';
-    div.dataset.id = id;
-    div.innerHTML = `<span class="cat-name">${name.replace(/</g,'&lt;')}</span>`
+    div.dataset.id    = id;
+    div.dataset.color = color || '';
+    div.innerHTML =
+      `<div style="display:flex;align-items:center;gap:10px;flex:1">`
+      + `<div class="cat-color-swatch" style="background:${swatchBg};" title="Change color"></div>`
+      + `<span class="cat-name">${name.replace(/</g,'&lt;')}</span>`
+      + `</div>`
+      + buildSwatchPicker(color || '')
       + `<button class="cat-del-btn" data-id="${id}" data-name="${name.replace(/"/g,'&quot;')}" title="Remove">✕</button>`;
+    wireColorPicker(div, id);
     div.querySelector('.cat-del-btn').addEventListener('click', handleDelete);
     return div;
   }
+
+  function closeAllPickers(except) {
+    document.querySelectorAll('.cat-palette-picker.open').forEach(p => { if (p !== except) p.classList.remove('open'); });
+  }
+
+  function wireColorPicker(item, id) {
+    const swatch = item.querySelector('.cat-color-swatch');
+    const picker = item.querySelector('.cat-palette-picker');
+
+    swatch.addEventListener('click', function (e) {
+      e.stopPropagation();
+      closeAllPickers(picker);
+      picker.classList.toggle('open');
+    });
+
+    picker.querySelectorAll('.cat-color-item').forEach(colorItem => {
+      colorItem.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const color = colorItem.querySelector('[data-color]')?.dataset.color ?? '';
+        fetch(`/admin/categories/${id}/color`, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ _token: csrf, color }),
+        })
+        .then(r => r.json())
+        .then(d => {
+          if (!d.ok) return;
+          item.dataset.color = color;
+          swatch.style.background = color || '#e1e5e8';
+          picker.querySelectorAll('.cat-color-opt').forEach(b => b.classList.toggle('selected', b.dataset.color === color && !!color));
+          picker.classList.remove('open');
+          showToast('Color updated.');
+        })
+        .catch(() => showToast('Request failed.', true));
+      });
+    });
+  }
+
+  document.addEventListener('click', () => closeAllPickers(null));
 
   addBtn.addEventListener('click', function () {
     const name = input.value.trim();
@@ -306,7 +427,7 @@
     .then(d => {
       if (!d.ok) { showToast(d.message, true); return; }
       removeEmpty();
-      list.appendChild(buildItem(d.category.id, d.category.name));
+      list.appendChild(buildItem(d.category.id, d.category.name, d.category.color || ''));
       input.value = '';
       showToast('Category added.');
     })
@@ -343,7 +464,102 @@
     .finally(() => { btn.disabled = false; });
   }
 
-  document.querySelectorAll('.cat-del-btn').forEach(btn => btn.addEventListener('click', handleDelete));
+  document.querySelectorAll('.cat-del-btn:not(.palette-remove-btn)').forEach(btn => btn.addEventListener('click', handleDelete));
+
+  // Wire color pickers on existing items
+  document.querySelectorAll('.cat-item[data-id]').forEach(item => {
+    wireColorPicker(item, item.dataset.id);
+  });
+})();
+</script>
+
+<script>
+// ── Palette add/remove ──────────────────────────────────────────────────────
+(function () {
+  const paletteList = document.getElementById('palette-list');
+  const addBtn      = document.getElementById('palette-add-btn');
+
+  function reindex() {
+    paletteList.querySelectorAll('.palette-row').forEach((row, i) => {
+      row.dataset.index = i;
+      row.querySelector('.palette-color-input').name = `palette[${i}][color]`;
+      row.querySelector('.palette-name-input').name  = `palette[${i}][name]`;
+    });
+  }
+
+  function buildRow(color, name) {
+    const div = document.createElement('div');
+    div.className = 'palette-row';
+    div.draggable = true;
+    div.innerHTML = `<span class="palette-drag-handle" title="Drag to reorder">⠿</span>`
+      + `<input type="text" class="form-input palette-color-input" value="${color}" data-coloris placeholder="#000000" maxlength="7">`
+      + `<input class="form-input palette-name-input" type="text" value="${name}" placeholder="Color name" maxlength="40" style="flex:1">`
+      + `<button type="button" class="cat-del-btn palette-remove-btn" title="Remove">✕</button>`;
+    div.querySelector('.palette-remove-btn').addEventListener('click', function () {
+      div.remove();
+      reindex();
+    });
+    wireDrag(div);
+    return div;
+  }
+
+  // ── Drag-and-drop reorder ────────────────────────────────────────────────
+  let dragSrc = null;
+
+  function wireDrag(row) {
+    row.addEventListener('dragstart', function (e) {
+      dragSrc = row;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', function () {
+      row.classList.remove('dragging');
+      paletteList.querySelectorAll('.palette-row').forEach(r => r.classList.remove('drag-over'));
+      reindex();
+    });
+    row.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (row === dragSrc) return;
+      paletteList.querySelectorAll('.palette-row').forEach(r => r.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave', function () {
+      row.classList.remove('drag-over');
+    });
+    row.addEventListener('drop', function (e) {
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      if (!dragSrc || dragSrc === row) return;
+      const rows   = [...paletteList.querySelectorAll('.palette-row')];
+      const srcIdx = rows.indexOf(dragSrc);
+      const tgtIdx = rows.indexOf(row);
+      if (srcIdx < tgtIdx) {
+        paletteList.insertBefore(dragSrc, row.nextSibling);
+      } else {
+        paletteList.insertBefore(dragSrc, row);
+      }
+      reindex();
+    });
+  }
+
+  addBtn.addEventListener('click', function () {
+    paletteList.appendChild(buildRow('#000000', ''));
+    reindex();
+    paletteList.lastElementChild.querySelector('.palette-name-input').focus();
+  });
+
+  paletteList.querySelectorAll('.palette-remove-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      btn.closest('.palette-row').remove();
+      reindex();
+    });
+  });
+
+  paletteList.querySelectorAll('.palette-row').forEach(wireDrag);
+
+  // Init Coloris — data-coloris attribute handles event delegation automatically
+  Coloris({ format: 'hex', alpha: false });
 })();
 </script>
 

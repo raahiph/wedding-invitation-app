@@ -307,7 +307,7 @@ tbody tr:hover td { background:#F7F9FB; }
 .cat-item {
   display:flex; align-items:center; justify-content:space-between;
   padding:7px 10px; border-radius:6px; margin-bottom:4px;
-  background:#F2F5F8; font-size:12px; color:#3A4F65;
+  background:#F2F5F8; font-size:12px; color:#3A4F65; position:relative;
 }
 .cat-item:last-child { margin-bottom:0; }
 .cat-name { font-weight:500; }
@@ -317,6 +317,38 @@ tbody tr:hover td { background:#F7F9FB; }
   transition:color 0.15s, background 0.15s;
 }
 .cat-del-btn:hover { color:#C0392B; background:#FBE9E7; }
+/* Category color picker popover */
+.cat-color-swatch {
+  width:26px; height:26px; border-radius:6px;
+  border:2px solid rgba(0,0,0,0.12); cursor:pointer; flex-shrink:0;
+  transition:transform 0.15s;
+}
+.cat-color-swatch:active { transform:scale(0.92); }
+.cat-palette-picker {
+  display:none; position:absolute; left:0; top:calc(100% + 6px);
+  background:#fff; border:1px solid #D5DFE8; border-radius:10px;
+  padding:12px; box-shadow:0 6px 24px rgba(0,0,0,0.13);
+  z-index:200; flex-wrap:wrap; gap:10px; max-width:300px;
+}
+.cat-color-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+.cat-color-lbl { font-size:9px; color:#6B7E96; text-align:center; max-width:44px; line-height:1.2; word-break:break-word; }
+.cat-palette-picker.open { display:flex; }
+.cat-color-opt {
+  width:36px; height:36px; border-radius:8px;
+  border:3px solid transparent; cursor:pointer;
+  transition:transform 0.12s, border-color 0.12s;
+  flex-shrink:0;
+}
+.cat-color-opt:active { transform:scale(0.88); }
+.cat-color-opt.selected { border-color:#22304A; }
+.cat-color-opt-none {
+  width:36px; height:36px; border-radius:8px;
+  border:2px solid #C8D3DE; background:#fff; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; color:#9AA9B8; flex-shrink:0;
+  transition:transform 0.12s;
+}
+.cat-color-opt-none:active { transform:scale(0.88); }
 
 /* ─── CSV Import ─────────────────────────────────── */
 .csv-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }

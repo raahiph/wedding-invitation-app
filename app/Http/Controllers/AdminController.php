@@ -257,15 +257,26 @@ class AdminController extends Controller
 
     public function storeCategory(Request $request): \Illuminate\Http\JsonResponse
     {
-        $name = substr(trim($request->input('name', '')), 0, 60);
+        $name  = substr(trim($request->input('name', '')), 0, 60);
+        $color = preg_match('/^#[0-9a-fA-F]{3,6}$/', $request->input('color', ''))
+                 ? $request->input('color') : null;
+
         if (!$name) {
             return response()->json(['ok' => false, 'message' => 'Name is required.'], 422);
         }
         if (Category::where('name', $name)->exists()) {
             return response()->json(['ok' => false, 'message' => 'Category already exists.'], 422);
         }
-        $category = Category::create(['name' => $name]);
-        return response()->json(['ok' => true, 'category' => ['id' => $category->id, 'name' => $category->name]]);
+        $category = Category::create(['name' => $name, 'color' => $color]);
+        return response()->json(['ok' => true, 'category' => ['id' => $category->id, 'name' => $category->name, 'color' => $category->color]]);
+    }
+
+    public function updateCategoryColor(Request $request, Category $category): \Illuminate\Http\JsonResponse
+    {
+        $color = preg_match('/^#[0-9a-fA-F]{3,6}$/', $request->input('color', ''))
+                 ? $request->input('color') : null;
+        $category->update(['color' => $color]);
+        return response()->json(['ok' => true, 'color' => $category->color]);
     }
 
     public function destroyCategory(Category $category): \Illuminate\Http\JsonResponse
@@ -362,6 +373,18 @@ class AdminController extends Controller
 
     public function updateSettings(Request $request)
     {
+        // Palette — store as JSON
+        $paletteRaw = $request->input('palette', []);
+        $palette = [];
+        foreach ((array) $paletteRaw as $item) {
+            $color = preg_match('/^#[0-9a-fA-F]{3,6}$/', $item['color'] ?? '') ? $item['color'] : null;
+            $name  = substr(trim($item['name'] ?? ''), 0, 40);
+            if ($color && $name !== '') {
+                $palette[] = ['color' => $color, 'name' => $name];
+            }
+        }
+        Setting::updateOrCreate(['key' => 'palette'], ['value' => json_encode($palette)]);
+
         // Store manual / raw fields as-is
         $manualKeys = [
             'groom', 'bride', 'venue', 'city', 'country', 'venue_map_url',
