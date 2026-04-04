@@ -9,7 +9,7 @@
         : $wedding['groom'] . ' & ' . $wedding['bride'] . ' — Wedding Invitation';
     $ogDesc = $rsvpMode
         ? 'You\'re invited to the wedding of ' . $wedding['groom'] . ' & ' . $wedding['bride'] . '. Kindly confirm your attendance by ' . $wedding['rsvp_by'] . '.'
-        : 'You\'re invited to the wedding of ' . $wedding['groom'] . ' & ' . $wedding['bride'] . ' — ' . $wedding['date'] . ', ' . $wedding['venue'] . ', ' . $wedding['city'] . '.';
+        : 'You\'re invited to the wedding of ' . $wedding['groom'] . ' & ' . $wedding['bride'] . '.';
 @endphp
 <title>{{ $wedding['groom'] }} & {{ $wedding['bride'] }} — {{ $rsvpMode ? 'RSVP' : 'Wedding Invitation' }}</title>
 <meta name="description" content="{{ $ogDesc }}">
