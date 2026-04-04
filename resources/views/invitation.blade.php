@@ -209,7 +209,7 @@ body::before {
   position:relative; z-index:4;
   display:flex; flex-direction:column; align-items:center; gap:12px;
   background:none; border:none; padding:0; cursor:pointer;
-  animation:fadeSlideUp 1s ease 2.5s both, scrollBounce 1.8s ease-in-out 3.5s infinite;
+  animation:fadeSlideUp 1s ease 1.6s both, scrollBounce 1.8s ease-in-out 2.6s infinite;
 }
 .hero-scroll-label {
   font-family:'Montserrat',sans-serif; font-size:9px; font-weight:300;
@@ -220,13 +220,13 @@ body::before {
   border:2.5px solid rgba(255,255,255,0.8);
   border-radius:17px;
   display:flex; justify-content:center; padding-top:8px;
-  animation:mousePulse 1.8s ease-in-out 3.5s infinite;
+  animation:mousePulse 1.8s ease-in-out 2.6s infinite;
 }
 .hero-scroll-dot {
   width:7px; height:7px;
   background:rgba(255,255,255,0.95);
   border-radius:50%;
-  animation:mouseDot 1.8s ease-in-out 3.5s infinite;
+  animation:mouseDot 1.8s ease-in-out 2.6s infinite;
 }
 .hero-scroll-chevrons {
   display:flex; flex-direction:column; align-items:center; gap:0;
@@ -238,11 +238,11 @@ body::before {
   border-bottom:2.5px solid rgba(255,255,255,0.9);
   transform:rotate(45deg);
   margin-top:-7px;
-  animation:chevronPop 1.8s ease-in-out 3.5s infinite;
+  animation:chevronPop 1.8s ease-in-out 2.6s infinite;
 }
-.hero-scroll-chevrons span:nth-child(1) { animation-delay:3.5s; }
-.hero-scroll-chevrons span:nth-child(2) { animation-delay:3.65s; }
-.hero-scroll-chevrons span:nth-child(3) { animation-delay:3.8s; }
+.hero-scroll-chevrons span:nth-child(1) { animation-delay:2.6s; }
+.hero-scroll-chevrons span:nth-child(2) { animation-delay:2.75s; }
+.hero-scroll-chevrons span:nth-child(3) { animation-delay:2.9s; }
 @keyframes scrollBounce {
   0%,100% { transform:translateY(0); }
   40%     { transform:translateY(7px); }
