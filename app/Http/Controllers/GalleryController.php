@@ -5,16 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Guest;
 use App\Models\Photo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Laravel\Facades\Image;
 
 class GalleryController extends Controller
 {
+    // ── Guest gallery ─────────────────────────────────────────────────────────
+
     public function show()
     {
-        $photos          = Photo::where('approved', true)->latest()->get();
-        $fileRequestUrl  = \App\Models\Setting::find('dropbox_file_request_url')?->value;
+        $photos         = Photo::where('approved', true)->latest()->get();
+        $fileRequestUrl = \App\Models\Setting::find('dropbox_file_request_url')?->value;
         return view('gallery', compact('photos', 'fileRequestUrl'));
     }
 
@@ -48,7 +51,6 @@ class GalleryController extends Controller
         $file = $request->file('photo');
         $uuid = (string) Str::uuid();
 
-        // Build a name prefix from the guest if signed in
         $guestId = session('guest_id');
         $prefix  = '';
         if ($guestId) {
@@ -62,8 +64,7 @@ class GalleryController extends Controller
 
         $baseName = $prefix . $uuid;
 
-        // Generate web-optimised thumbnail (1200px wide) and save locally
-        $thumbDir  = storage_path('app/public/gallery');
+        $thumbDir = storage_path('app/public/gallery');
         if (!is_dir($thumbDir)) mkdir($thumbDir, 0755, true);
 
         $thumbFile = $thumbDir . '/' . $baseName . '.jpg';
@@ -72,9 +73,7 @@ class GalleryController extends Controller
             ->toJpeg(quality: 85)
             ->save($thumbFile);
 
-        $thumbPath = 'gallery/' . $baseName . '.jpg';
-
-        // Upload original to Dropbox
+        $thumbPath   = 'gallery/' . $baseName . '.jpg';
         $dropboxPath = '/' . $baseName . '_original.' . $file->getClientOriginalExtension();
         Storage::disk('dropbox')->put($dropboxPath, fopen($file->getRealPath(), 'r'));
 
@@ -94,26 +93,56 @@ class GalleryController extends Controller
         ]);
     }
 
+    // ── Admin ─────────────────────────────────────────────────────────────────
+
     public function adminIndex()
     {
         $photos = Photo::latest()->get();
         return view('admin.gallery', compact('photos'));
     }
 
+    public function adminSync()
+    {
+        try {
+            Artisan::call('gallery:sync-dropbox');
+            $output = Artisan::output();
+
+            preg_match('/(\d+) added, (\d+) errors/', $output, $m);
+            return response()->json([
+                'ok'     => true,
+                'added'  => (int) ($m[1] ?? 0),
+                'errors' => (int) ($m[2] ?? 0),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function destroy(Photo $photo)
     {
-        // Remove local thumbnail
+        // Delete local thumbnail
         Storage::disk('public')->delete($photo->thumb_path);
 
-        // Remove original from Dropbox
-        // try {
-        //     Storage::disk('dropbox')->delete($photo->dropbox_path);
-        // } catch (\Exception) {
-        //     // Continue even if Dropbox delete fails
-        // }
+        // Also remove original from Dropbox
+        if ($photo->dropbox_path) {
+            try {
+                $appFolder  = rtrim(env('DROPBOX_APP_FOLDER', ''), '/');
+                $fullPath   = $appFolder . $photo->dropbox_path;
+                $this->dropboxClient()->delete($fullPath);
+            } catch (\Throwable) {
+                // Continue even if Dropbox delete fails
+            }
+        }
 
         $photo->delete();
-
         return response()->json(['ok' => true]);
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private function dropboxClient(): \Spatie\Dropbox\Client
+    {
+        Storage::disk('dropbox')->exists('__ping__');
+        return new \Spatie\Dropbox\Client(cache()->get('dropbox_access_token'));
     }
 }

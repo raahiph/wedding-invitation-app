@@ -485,6 +485,7 @@ function attachLightbox(el) {
 
 // Attach to all existing items
 getItems().forEach(attachLightbox);
+
 </script>
 
 </body>

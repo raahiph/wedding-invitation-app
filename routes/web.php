@@ -17,6 +17,7 @@ Route::get('/gallery', [GalleryController::class, 'show'])->name('gallery')->mid
 Route::get('/upload', [GalleryController::class, 'uploadPage'])->name('gallery.upload-page');
 Route::post('/gallery', [GalleryController::class, 'upload'])->name('gallery.upload');
 Route::get('/gallery/photos', [GalleryController::class, 'photos'])->name('gallery.photos')->middleware('guest.verified');
+Route::get('/gallery/dropbox-thumb/{encodedPath}', [GalleryController::class, 'dropboxThumb'])->name('gallery.dropbox-thumb')->middleware('guest.verified');
 
 // ── Shared: .ics calendar download ───────────────────────────────────────────
 $calendarRoute = function () {
@@ -129,5 +130,6 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::post('/categories/{category}/color', [AdminController::class, 'updateCategoryColor'])->name('categories.color');
     Route::delete('/categories/{category}', [AdminController::class, 'destroyCategory'])->name('categories.destroy');
     Route::get('/gallery', [GalleryController::class, 'adminIndex'])->name('gallery');
+    Route::post('/gallery/sync', [GalleryController::class, 'adminSync'])->name('gallery.sync');
     Route::delete('/gallery/{photo}', [GalleryController::class, 'destroy'])->name('gallery.destroy');
 });
