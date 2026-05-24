@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AlbumController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\GateController;
 use App\Http\Controllers\RsvpController;
@@ -18,6 +19,10 @@ Route::get('/upload', [GalleryController::class, 'uploadPage'])->name('gallery.u
 Route::post('/gallery', [GalleryController::class, 'upload'])->name('gallery.upload');
 Route::get('/gallery/photos', [GalleryController::class, 'photos'])->name('gallery.photos')->middleware('guest.verified');
 Route::get('/gallery/dropbox-thumb/{encodedPath}', [GalleryController::class, 'dropboxThumb'])->name('gallery.dropbox-thumb')->middleware('guest.verified');
+
+// ── Public album routes (no auth) ────────────────────────────────────────────
+Route::get('/a/dl/{photo}', [AlbumController::class, 'downloadProxy'])->name('album.download');
+Route::get('/a/{token}', [AlbumController::class, 'show'])->name('album.show');
 
 // ── Shared: .ics calendar download ───────────────────────────────────────────
 $calendarRoute = function () {
@@ -132,4 +137,17 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::get('/gallery', [GalleryController::class, 'adminIndex'])->name('gallery');
     Route::post('/gallery/sync', [GalleryController::class, 'adminSync'])->name('gallery.sync');
     Route::delete('/gallery/{photo}', [GalleryController::class, 'destroy'])->name('gallery.destroy');
+    Route::get('/albums', [AlbumController::class, 'index'])->name('albums.index');
+    Route::post('/albums', [AlbumController::class, 'store'])->name('albums.store');
+    Route::get('/albums/{album}', [AlbumController::class, 'manage'])->name('albums.manage');
+    Route::post('/albums/{album}/rename', [AlbumController::class, 'rename'])->name('albums.rename');
+    Route::delete('/albums/{album}', [AlbumController::class, 'destroy'])->name('albums.destroy');
+    Route::post('/albums/{album}/photos', [AlbumController::class, 'uploadPhotos'])->name('albums.photos.store');
+    Route::post('/albums/{album}/photos/group', [AlbumController::class, 'groupPhotos'])->name('albums.photos.group');
+    Route::post('/albums/{album}/photos/ungroup', [AlbumController::class, 'ungroupPhotos'])->name('albums.photos.ungroup');
+    Route::post('/albums/{album}/photos/bulk-delete', [AlbumController::class, 'bulkDestroyPhotos'])->name('albums.photos.bulk-delete');
+    Route::delete('/albums/{album}/photos/{photo}', [AlbumController::class, 'destroyPhoto'])->name('albums.photos.destroy');
+    Route::post('/albums/{album}/dropbox', [AlbumController::class, 'setDropboxFolder'])->name('albums.dropbox');
+    Route::post('/albums/{album}/sync', [AlbumController::class, 'syncAlbum'])->name('albums.sync');
+    Route::post('/albums/{album}/gate', [AlbumController::class, 'setGated'])->name('albums.gate');
 });

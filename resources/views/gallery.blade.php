@@ -156,6 +156,65 @@ body::before {
 
 @media(max-width:540px) { .gl-queue { padding:10px 20px 14px; } }
 
+/* ── Albums ─────────────────────────────────────────── */
+.gl-albums {
+  padding:32px 32px 0;
+  max-width:1400px; margin:0 auto;
+}
+.gl-albums-heading {
+  font-size:9px; font-weight:500; letter-spacing:0.3em;
+  text-transform:uppercase; color:var(--muted);
+  margin-bottom:16px;
+}
+.gl-albums-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+  gap:12px;
+  margin-bottom:32px;
+}
+.gl-album-card {
+  position:relative; border-radius:4px; overflow:hidden;
+  aspect-ratio:4/3;
+  box-shadow:0 2px 12px rgba(0,0,0,0.1);
+  text-decoration:none; display:block;
+  cursor:pointer;
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.gl-album-card:hover { transform:translateY(-3px); box-shadow:0 6px 20px rgba(0,0,0,0.15); }
+.gl-album-cover {
+  width:100%; height:100%; object-fit:cover; display:block;
+  transition:transform 0.4s ease;
+}
+.gl-album-card:hover .gl-album-cover { transform:scale(1.05); }
+.gl-album-no-cover {
+  width:100%; height:100%;
+  background:linear-gradient(135deg, #C8D3DE 0%, #E8EDF2 100%);
+  display:flex; align-items:center; justify-content:center;
+}
+.gl-album-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(10,18,32,0.72) 0%, rgba(10,18,32,0.1) 55%, transparent 100%);
+  display:flex; flex-direction:column; justify-content:flex-end;
+  padding:12px;
+}
+.gl-album-name {
+  font-size:12px; font-weight:500; color:#fff;
+  line-height:1.3; margin-bottom:3px;
+  text-shadow:0 1px 6px rgba(0,0,0,0.5);
+}
+.gl-album-count {
+  font-size:10px; font-weight:300; color:rgba(255,255,255,0.65);
+  letter-spacing:0.05em;
+}
+.gl-album-lock {
+  position:absolute; top:8px; right:8px;
+  background:rgba(0,0,0,0.38); border-radius:50%;
+  width:26px; height:26px;
+  display:flex; align-items:center; justify-content:center;
+}
+@media(max-width:700px)  { .gl-albums-grid { grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px; } .gl-albums { padding:24px 14px 0; } }
+@media(max-width:440px)  { .gl-albums-grid { grid-template-columns:repeat(2,1fr); } }
+
 /* ── Grid ───────────────────────────────────────────── */
 .gl-body { padding:36px 32px 80px; max-width:1400px; margin:0 auto; }
 .gl-empty {
@@ -261,6 +320,35 @@ body::before {
 <div class="gl-queue" id="gl-queue">
   <ul class="gl-queue-list" id="gl-queue-list"></ul>
 </div>
+
+@if($albums->isNotEmpty())
+<div class="gl-albums">
+  <p class="gl-albums-heading">Albums</p>
+  <div class="gl-albums-grid">
+    @foreach($albums as $album)
+      @php $cover = $album->photos->first(); @endphp
+      <a href="{{ route('album.show', $album->token) }}" class="gl-album-card">
+        @if($cover)
+          <img class="gl-album-cover" src="{{ $cover->thumbUrl() }}" loading="lazy" alt="{{ $album->name }}">
+        @else
+          <div class="gl-album-no-cover">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9AA9B8" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+        @endif
+        <div class="gl-album-overlay">
+          <p class="gl-album-name">{{ $album->name }}</p>
+          <p class="gl-album-count">{{ $album->photos_count ?? $album->photos->count() }} photo{{ ($album->photos_count ?? $album->photos->count()) === 1 ? '' : 's' }}</p>
+        </div>
+        @if($album->gated)
+          <div class="gl-album-lock">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+        @endif
+      </a>
+    @endforeach
+  </div>
+</div>
+@endif
 
 <div class="gl-body">
   @if($photos->isEmpty())

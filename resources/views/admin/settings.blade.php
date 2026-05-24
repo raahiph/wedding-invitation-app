@@ -266,6 +266,17 @@
              placeholder="https://www.dropbox.com/request/…">
       <p style="font-size:11px;color:#8E9BAB;margin-top:6px;">When set, the upload page shows a button linking here instead of the built-in uploader.</p>
     </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid #EDF0F4;">
+      <div>
+        <p style="font-size:13px;font-weight:500;color:#1A2332;margin-bottom:3px;">Delete from Dropbox on removal</p>
+        <p class="mode-desc">When enabled, deleting a synced photo also removes the original file from Dropbox.</p>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" name="dropbox_delete_on_remove" value="1"
+               {{ ($settings['dropbox_delete_on_remove'] ?? '0') === '1' ? 'checked' : '' }}>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
   </div>
 
   {{-- Color Palette --}}

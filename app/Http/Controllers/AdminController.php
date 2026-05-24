@@ -401,6 +401,12 @@ class AdminController extends Controller
             Setting::updateOrCreate(['key' => $key], ['value' => $request->input($key) ?? '']);
         }
 
+        // Checkbox — unchecked means key is absent from POST
+        Setting::updateOrCreate(
+            ['key' => 'dropbox_delete_on_remove'],
+            ['value' => $request->boolean('dropbox_delete_on_remove') ? '1' : '0']
+        );
+
         // Derive and save display formats from raw picker values
         $eventDate        = $request->input('event_date', '');
         $receptionTimeRaw = $request->input('reception_time_raw', '');

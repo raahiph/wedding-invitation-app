@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Album;
 use App\Models\Guest;
 use App\Models\Photo;
 use Illuminate\Http\Request;
@@ -18,7 +19,8 @@ class GalleryController extends Controller
     {
         $photos         = Photo::where('approved', true)->latest()->get();
         $fileRequestUrl = \App\Models\Setting::find('dropbox_file_request_url')?->value;
-        return view('gallery', compact('photos', 'fileRequestUrl'));
+        $albums         = Album::has('photos')->withCount('photos')->with(['photos' => fn($q) => $q->oldest()->limit(1)])->latest()->get();
+        return view('gallery', compact('photos', 'fileRequestUrl', 'albums'));
     }
 
     public function uploadPage()
@@ -123,15 +125,12 @@ class GalleryController extends Controller
         // Delete local thumbnail
         Storage::disk('public')->delete($photo->thumb_path);
 
-        // Also remove original from Dropbox
-        if ($photo->dropbox_path) {
+        if ($photo->dropbox_path && $this->dropboxDeleteEnabled()) {
             try {
-                $appFolder  = rtrim(env('DROPBOX_APP_FOLDER', ''), '/');
-                $fullPath   = $appFolder . $photo->dropbox_path;
-                $this->dropboxClient()->delete($fullPath);
-            } catch (\Throwable) {
-                // Continue even if Dropbox delete fails
-            }
+                $this->dropboxClient()->delete(
+                    rtrim(env('DROPBOX_APP_FOLDER', ''), '/') . $photo->dropbox_path
+                );
+            } catch (\Throwable) {}
         }
 
         $photo->delete();
@@ -144,5 +143,10 @@ class GalleryController extends Controller
     {
         Storage::disk('dropbox')->exists('__ping__');
         return new \Spatie\Dropbox\Client(cache()->get('dropbox_access_token'));
+    }
+
+    private function dropboxDeleteEnabled(): bool
+    {
+        return \App\Models\Setting::where('key', 'dropbox_delete_on_remove')->value('value') === '1';
     }
 }
