@@ -10,4 +10,7 @@ Artisan::command('inspire', function () {
 
 // Sync Dropbox file-request photos into the DB every hour.
 // Ensure the system cron runs: * * * * * php /path/to/artisan schedule:run
-Schedule::command('gallery:sync-dropbox')->everyTenMinutes();
+Schedule::command('gallery:sync-dropbox')
+    ->everyTenMinutes()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/sync-dropbox.log'));
