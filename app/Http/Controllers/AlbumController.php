@@ -310,6 +310,20 @@ class AlbumController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    // ── Admin: set group cover photo (the tile shown in the album grid) ───────
+
+    public function setGroupCover(Album $album, AlbumPhoto $photo)
+    {
+        abort_if($photo->album_id !== $album->id, 404);
+        abort_if(!$photo->group_key, 422);
+
+        // Clear flag on all other photos in the same group, then set on this one
+        $album->photos()->where('group_key', $photo->group_key)->update(['is_group_cover' => false]);
+        $photo->update(['is_group_cover' => true]);
+
+        return response()->json(['ok' => true]);
+    }
+
     // ── Admin: toggle album gate (requires mobile verification) ──────────────
 
     public function setGated(Request $request, Album $album)

@@ -173,7 +173,13 @@
           @endif
         </div>
         <div style="padding:6px 8px;background:#fff;border-top:1px solid #EDF0F4;display:flex;align-items:center;justify-content:space-between;gap:4px;">
-          <span style="font-size:10px;color:#A8B8C8;">{{ $photo->created_at->format('d M') }}</span>
+          <div style="display:flex;gap:4px;">
+            @if($photo->group_key)
+              <button onclick="setGroupCover({{ $photo->id }}, this)" class="aph-cover{{ $photo->is_group_cover ? ' aph-cover-active' : '' }}" title="Set as group cover">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="{{ $photo->is_group_cover ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </button>
+            @endif
+          </div>
           <button onclick="deletePhoto({{ $photo->id }})" class="aph-del">Delete</button>
         </div>
       </div>
@@ -193,6 +199,9 @@
 <style>
 .alb-card { border-radius:6px; overflow:hidden; background:#E2E8F0; box-shadow:0 1px 4px rgba(0,0,0,0.07); transition:outline-color 0.15s; }
 .aph-del { font-size:10px; padding:2px 8px; border:1px solid #F5C6CB; border-radius:4px; color:#C0392B; background:#FDF2F2; cursor:pointer; }
+.aph-cover { padding:3px 5px; border:1px solid #DDE2E8; border-radius:4px; color:#9AA9B8; background:#fff; cursor:pointer; display:flex; align-items:center; }
+.aph-cover:hover { border-color:#F0C040; color:#D4A012; }
+.aph-cover-active { border-color:#F0C040 !important; color:#D4A012 !important; background:#FFFBEE !important; }
 #drop-zone { cursor:default; transition:border-color 0.2s,background 0.2s; }
 #drop-zone.dragging { border-color:#6EA8D0 !important; background:#F0F7FD !important; }
 .q-item { display:grid; grid-template-columns:1fr auto; column-gap:10px; row-gap:4px; align-items:center; }
@@ -334,6 +343,26 @@ function checkDone() {
 }
 
 function escHtml(str) { return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ── Set group cover photo (tile shown in album grid) ──────────────────────────
+function setGroupCover(photoId, btn) {
+  fetch(BASE + '/photos/' + photoId + '/group-cover', { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' } })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.ok) return;
+      // Find the card and its group key, then clear all group-cover buttons in the same group
+      const card = document.getElementById('aph-' + photoId);
+      const groupKey = card?.dataset.groupKey;
+      if (groupKey) {
+        document.querySelectorAll('.alb-card[data-group-key="' + groupKey + '"] .aph-cover[title="Set as group cover"]').forEach(b => {
+          b.classList.remove('aph-cover-active');
+          b.querySelector('svg').setAttribute('fill', 'none');
+        });
+      }
+      btn.classList.add('aph-cover-active');
+      btn.querySelector('svg').setAttribute('fill', 'currentColor');
+    });
+}
 
 // ── Delete photo ─────────────────────────────────────────────────────────────
 function deletePhoto(photoId) {

@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class AlbumPhoto extends Model
 {
-    protected $fillable = ['album_id', 'thumb_path', 'type', 'dropbox_path', 'group_key'];
+    protected $fillable = ['album_id', 'thumb_path', 'type', 'dropbox_path', 'group_key', 'is_group_cover'];
+
+    protected $casts = ['is_group_cover' => 'boolean'];
 
     public function isVideo(): bool { return $this->type === 'video'; }
     public function isGif(): bool   { return $this->type === 'gif'; }

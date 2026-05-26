@@ -150,4 +150,5 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::post('/albums/{album}/dropbox', [AlbumController::class, 'setDropboxFolder'])->name('albums.dropbox');
     Route::post('/albums/{album}/sync', [AlbumController::class, 'syncAlbum'])->name('albums.sync');
     Route::post('/albums/{album}/gate', [AlbumController::class, 'setGated'])->name('albums.gate');
+    Route::post('/albums/{album}/photos/{photo}/group-cover', [AlbumController::class, 'setGroupCover'])->name('albums.photos.group-cover');
 });

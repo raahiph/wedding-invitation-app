@@ -263,7 +263,9 @@ body::before {
     <div class="grid" id="grid">
       @foreach($groups as $gi => $group)
         @php
-          $rep   = $group->first(fn($p) => !$p->isVideo() && $p->thumb_path) ?? $group->first();
+          $rep   = $group->firstWhere('is_group_cover', true)
+                 ?? $group->first(fn($p) => !$p->isVideo() && $p->thumb_path)
+                 ?? $group->first();
           $count = $group->count();
         @endphp
         <div class="item" data-gi="{{ $gi }}">
@@ -330,6 +332,9 @@ $groupsData = $groups->map(fn($g) => $g->map(fn($p) => [
 <script>
 const GROUPS = @json($groupsData);
 
+// Indices of solo groups (ungrouped single photos) for cross-navigation
+const soloIdxs = GROUPS.map(function(g, i) { return g.length === 1 ? i : -1; }).filter(function(i) { return i >= 0; });
+
 const lb        = document.getElementById('lb');
 const lbWrap    = document.getElementById('lb-wrap');
 const lbImg     = document.getElementById('lb-img');
@@ -357,7 +362,18 @@ function render() {
   var photo = group[pIdx];
 
   lbDl.href = photo.download;
-  lbCounter.textContent = group.length > 1 ? (pIdx + 1) + ' / ' + group.length : '';
+
+  var isSolo = group.length === 1;
+  if (isSolo) {
+    var sp = soloIdxs.indexOf(gIdx);
+    lbCounter.textContent = soloIdxs.length > 1 ? (sp + 1) + ' / ' + soloIdxs.length : '';
+  } else {
+    lbCounter.textContent = (pIdx + 1) + ' / ' + group.length;
+  }
+
+  var showArrows = group.length > 1 || soloIdxs.length > 1;
+  document.getElementById('lb-prev').style.display = showArrows ? '' : 'none';
+  document.getElementById('lb-next').style.display = showArrows ? '' : 'none';
 
   renderStrip(group);
 
@@ -407,16 +423,24 @@ function renderStrip(group) {
 }
 
 function prev() {
-  if (pIdx > 0) { pIdx--; }
-  else if (gIdx > 0) { gIdx--; pIdx = GROUPS[gIdx].length - 1; }
-  else { gIdx = GROUPS.length - 1; pIdx = GROUPS[gIdx].length - 1; }
+  if (GROUPS[gIdx].length > 1) {
+    pIdx = (pIdx - 1 + GROUPS[gIdx].length) % GROUPS[gIdx].length;
+  } else {
+    var sp = soloIdxs.indexOf(gIdx);
+    gIdx = soloIdxs[(sp - 1 + soloIdxs.length) % soloIdxs.length];
+    pIdx = 0;
+  }
   render();
 }
 
 function next() {
-  if (pIdx < GROUPS[gIdx].length - 1) { pIdx++; }
-  else if (gIdx < GROUPS.length - 1) { gIdx++; pIdx = 0; }
-  else { gIdx = 0; pIdx = 0; }
+  if (GROUPS[gIdx].length > 1) {
+    pIdx = (pIdx + 1) % GROUPS[gIdx].length;
+  } else {
+    var sp = soloIdxs.indexOf(gIdx);
+    gIdx = soloIdxs[(sp + 1) % soloIdxs.length];
+    pIdx = 0;
+  }
   render();
 }
 

@@ -19,7 +19,10 @@ class GalleryController extends Controller
     {
         $photos         = Photo::where('approved', true)->latest()->get();
         $fileRequestUrl = \App\Models\Setting::find('dropbox_file_request_url')?->value;
-        $albums         = Album::has('photos')->withCount('photos')->with(['photos' => fn($q) => $q->oldest()->limit(1)])->latest()->get();
+        $albums = Album::has('photos')->withCount('photos')->latest()->get();
+        foreach ($albums as $album) {
+            $album->setRelation('coverPhotos', $album->photos()->where('type', 'image')->inRandomOrder()->limit(4)->get());
+        }
         return view('gallery', compact('photos', 'fileRequestUrl', 'albums'));
     }
 

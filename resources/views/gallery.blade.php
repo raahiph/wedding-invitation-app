@@ -174,23 +174,32 @@ body::before {
 }
 .gl-album-card {
   position:relative; border-radius:4px; overflow:hidden;
-  aspect-ratio:4/3;
+  aspect-ratio:1/1;
   box-shadow:0 2px 12px rgba(0,0,0,0.1);
   text-decoration:none; display:block;
   cursor:pointer;
   transition:transform 0.25s ease, box-shadow 0.25s ease;
 }
 .gl-album-card:hover { transform:translateY(-3px); box-shadow:0 6px 20px rgba(0,0,0,0.15); }
-.gl-album-cover {
-  width:100%; height:100%; object-fit:cover; display:block;
+.gl-album-collage {
+  width:100%; height:100%;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:2px;
+  background:#C8D3DE;
+}
+.gl-album-collage-cell {
+  overflow:hidden; background:#D8E0E8;
   transition:transform 0.4s ease;
 }
-.gl-album-card:hover .gl-album-cover { transform:scale(1.05); }
-.gl-album-no-cover {
-  width:100%; height:100%;
-  background:linear-gradient(135deg, #C8D3DE 0%, #E8EDF2 100%);
-  display:flex; align-items:center; justify-content:center;
+.gl-album-card:hover .gl-album-collage-cell { transform:scale(1.05); }
+.gl-album-collage-cell img {
+  width:100%; height:100%; object-fit:cover; display:block;
 }
+.gl-album-collage.count-1 .gl-album-collage-cell { grid-column:1/-1; grid-row:1/-1; }
+.gl-album-collage.count-2 .gl-album-collage-cell:first-child { grid-row:1/-1; }
+.gl-album-collage.count-3 .gl-album-collage-cell:first-child { grid-row:1/-1; }
 .gl-album-overlay {
   position:absolute; inset:0;
   background:linear-gradient(to top, rgba(10,18,32,0.72) 0%, rgba(10,18,32,0.1) 55%, transparent 100%);
@@ -326,15 +335,17 @@ body::before {
   <p class="gl-albums-heading">Albums</p>
   <div class="gl-albums-grid">
     @foreach($albums as $album)
-      @php $cover = $album->photos->first(); @endphp
+      @php $tiles = $album->coverPhotos; $tc = $tiles->count(); @endphp
       <a href="{{ route('album.show', $album->token) }}" class="gl-album-card">
-        @if($cover)
-          <img class="gl-album-cover" src="{{ $cover->thumbUrl() }}" loading="lazy" alt="{{ $album->name }}">
-        @else
-          <div class="gl-album-no-cover">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9AA9B8" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          </div>
-        @endif
+        <div class="gl-album-collage count-{{ min($tc, 4) }}">
+          @forelse($tiles->take(4) as $tile)
+            <div class="gl-album-collage-cell">
+              <img src="{{ $tile->thumbUrl() }}" loading="lazy" alt="">
+            </div>
+          @empty
+            <div class="gl-album-collage-cell"></div>
+          @endforelse
+        </div>
         <div class="gl-album-overlay">
           <p class="gl-album-name">{{ $album->name }}</p>
           <p class="gl-album-count">{{ $album->photos_count ?? $album->photos->count() }} photo{{ ($album->photos_count ?? $album->photos->count()) === 1 ? '' : 's' }}</p>
