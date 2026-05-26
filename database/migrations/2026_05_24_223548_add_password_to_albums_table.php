@@ -8,15 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('albums', function (Blueprint $table) {
-            $table->boolean('gated')->default(false)->after('dropbox_folder');
-        });
+        if (!Schema::hasColumn('albums', 'gated')) {
+            Schema::table('albums', function (Blueprint $table) {
+                $table->boolean('gated')->default(false)->after('dropbox_folder');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('albums', function (Blueprint $table) {
-            $table->dropColumn('gated');
-        });
+        if (Schema::hasColumn('albums', 'gated')) {
+            Schema::table('albums', function (Blueprint $table) {
+                $table->dropColumn('gated');
+            });
+        }
     }
 };
