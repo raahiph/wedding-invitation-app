@@ -105,21 +105,19 @@
     <ul id="queue-list" style="list-style:none;display:flex;flex-direction:column;gap:8px;max-width:560px;margin:0 auto;"></ul>
   </div>
 
-  {{-- Group toolbar --}}
   @php
-    $groupedMap = [];  // group_key → sequential number
+    $grouped    = $photos->whereNotNull('group_key')->groupBy('group_key');
+    $ungrouped  = $photos->whereNull('group_key');
+    $groupHues  = [210, 145, 270, 30, 180, 340];
+    $groupedMap = [];
     $gi = 1;
-    foreach ($photos->whereNotNull('group_key')->groupBy('group_key') as $key => $_) {
-        $groupedMap[$key] = $gi++;
-    }
-    $groupHues = [210, 145, 270, 30, 180, 340];
+    foreach ($grouped as $key => $_) { $groupedMap[$key] = $gi++; }
   @endphp
 
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+  {{-- Toolbar --}}
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
     <span style="font-size:11px;color:#9AA9B8;">
-      @if(count($groupedMap) > 0)
-        {{ count($groupedMap) }} group{{ count($groupedMap) === 1 ? '' : 's' }} &nbsp;·&nbsp;
-      @endif
+      @if($grouped->count()) {{ $grouped->count() }} group{{ $grouped->count() === 1 ? '' : 's' }} &nbsp;·&nbsp; @endif
       {{ $photos->count() }} photo{{ $photos->count() === 1 ? '' : 's' }}
     </span>
     <button id="sel-toggle" onclick="toggleSelectMode()"
@@ -128,63 +126,97 @@
     </button>
   </div>
 
-  {{-- Photo grid --}}
+  {{-- Empty state --}}
   @if($photos->isEmpty())
     <p id="empty-msg" style="text-align:center;padding:48px 24px;color:#9AA9B8;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;">
       No photos yet — upload above to get started.
     </p>
   @endif
 
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;" id="photo-grid">
-    @foreach($photos as $photo)
-      @php
-        $gn  = $photo->group_key ? ($groupedMap[$photo->group_key] ?? null) : null;
-        $hue = $gn ? $groupHues[($gn - 1) % count($groupHues)] : null;
-      @endphp
-      <div class="alb-card" id="aph-{{ $photo->id }}"
-           data-id="{{ $photo->id }}"
-           data-group-key="{{ $photo->group_key ?? '' }}"
-           @if($hue) style="outline:2px solid hsl({{ $hue }},55%,58%);outline-offset:-2px;" @endif>
-        <div style="position:relative;aspect-ratio:1/1;overflow:hidden;background:#D1D9E0;">
-          {{-- Select overlay --}}
-          <div class="sel-overlay" onclick="toggleSelect({{ $photo->id }}, '{{ $photo->group_key ?? '' }}')">
-            <div class="sel-check">
-              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  {{-- Hidden container so JS can still find cards by id --}}
+  <div id="photo-grid">
+
+  {{-- ── Ungrouped ───────────────────────────────────────────────────── --}}
+  @if($ungrouped->isNotEmpty())
+    <div class="ungrouped-grid">
+      @foreach($ungrouped as $photo)
+        <div class="alb-card" id="aph-{{ $photo->id }}" data-id="{{ $photo->id }}" data-group-key="">
+          <div style="position:relative;aspect-ratio:1/1;overflow:hidden;background:#D1D9E0;">
+            <div class="sel-overlay" onclick="toggleSelect({{ $photo->id }}, '')">
+              <div class="sel-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
             </div>
-          </div>
-          @if($photo->isVideo())
-            <video src="{{ $photo->thumbUrl() }}" preload="metadata" muted playsinline
-                   style="width:100%;height:100%;object-fit:cover;display:block;"></video>
-            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);pointer-events:none;">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="white" opacity="0.9"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </div>
-          @else
-            <img src="{{ $photo->thumbUrl() }}" loading="lazy" alt=""
-                 style="width:100%;height:100%;object-fit:cover;display:block;">
-            @if($photo->isGif())
-              <span style="position:absolute;bottom:6px;left:6px;font-size:9px;font-weight:600;letter-spacing:0.05em;background:rgba(0,0,0,0.55);color:#fff;padding:2px 6px;border-radius:3px;">GIF</span>
-            @endif
-          @endif
-          @if($gn)
-            <span class="grp-badge" data-group-key="{{ $photo->group_key }}"
-                  style="background:hsl({{ $hue }},55%,92%);color:hsl({{ $hue }},55%,32%);">
-              G{{ $gn }}
-            </span>
-          @endif
-        </div>
-        <div style="padding:6px 8px;background:#fff;border-top:1px solid #EDF0F4;display:flex;align-items:center;justify-content:space-between;gap:4px;">
-          <div style="display:flex;gap:4px;">
-            @if($photo->group_key)
-              <button onclick="setGroupCover({{ $photo->id }}, this)" class="aph-cover{{ $photo->is_group_cover ? ' aph-cover-active' : '' }}" title="Set as group cover">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="{{ $photo->is_group_cover ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              </button>
+            @if($photo->isVideo())
+              <video src="{{ $photo->thumbUrl() }}" preload="metadata" muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);pointer-events:none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white" opacity="0.9"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              </div>
+            @else
+              <img src="{{ $photo->thumbUrl() }}" loading="lazy" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+              @if($photo->isGif())
+                <span style="position:absolute;bottom:5px;left:5px;font-size:9px;font-weight:600;background:rgba(0,0,0,0.55);color:#fff;padding:1px 5px;border-radius:3px;">GIF</span>
+              @endif
             @endif
           </div>
-          <button onclick="deletePhoto({{ $photo->id }})" class="aph-del">Delete</button>
+          <div class="aph-footer">
+            <span style="font-size:10px;color:#C8D3DE;">—</span>
+            <button onclick="deletePhoto({{ $photo->id }})" class="aph-del">×</button>
+          </div>
         </div>
+      @endforeach
+    </div>
+  @endif
+
+  {{-- ── Groups ─────────────────────────────────────────────────────── --}}
+  @if($grouped->count() && $ungrouped->isNotEmpty())
+    <div class="section-divider" style="margin-top:24px;">
+      <span>Groups &nbsp;·&nbsp; {{ $grouped->count() }}</span>
+    </div>
+  @endif
+  @foreach($grouped as $groupKey => $groupPhotos)
+    @php $gn = $groupedMap[$groupKey]; $hue = $groupHues[($gn - 1) % count($groupHues)]; @endphp
+    <div class="grp-section" style="border-left:3px solid hsl({{ $hue }},55%,58%);margin-bottom:20px;">
+      <div class="grp-section-hd">
+        <span style="font-size:11px;font-weight:600;color:hsl({{ $hue }},45%,35%);letter-spacing:0.04em;">
+          Group {{ $gn }}
+        </span>
+        <span style="font-size:10px;color:#9AA9B8;">{{ $groupPhotos->count() }} photo{{ $groupPhotos->count() === 1 ? '' : 's' }}</span>
+        <button class="grp-sel-all" data-group-key="{{ $groupKey }}" onclick="selectGroup('{{ $groupKey }}')">Select all</button>
       </div>
-    @endforeach
-  </div>
+      <div class="grp-photos">
+        @foreach($groupPhotos as $photo)
+          <div class="alb-card" id="aph-{{ $photo->id }}" data-id="{{ $photo->id }}" data-group-key="{{ $groupKey }}">
+            <div style="position:relative;aspect-ratio:1/1;overflow:hidden;background:#D1D9E0;">
+              <div class="sel-overlay" onclick="toggleSelect({{ $photo->id }}, '{{ $groupKey }}')">
+                <div class="sel-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+              </div>
+              @if($photo->isVideo())
+                <video src="{{ $photo->thumbUrl() }}" preload="metadata" muted playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);pointer-events:none;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="white" opacity="0.9"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
+              @else
+                <img src="{{ $photo->thumbUrl() }}" loading="lazy" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+                @if($photo->isGif())
+                  <span style="position:absolute;bottom:5px;left:5px;font-size:9px;font-weight:600;background:rgba(0,0,0,0.55);color:#fff;padding:1px 5px;border-radius:3px;">GIF</span>
+                @endif
+              @endif
+              @if($photo->is_group_cover)
+                <span style="position:absolute;top:5px;right:5px;font-size:9px;background:rgba(212,160,18,0.9);color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">Cover</span>
+              @endif
+            </div>
+            <div class="aph-footer">
+              <button onclick="setGroupCover({{ $photo->id }}, this)" class="aph-cover{{ $photo->is_group_cover ? ' aph-cover-active' : '' }}" title="Set as group cover">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="{{ $photo->is_group_cover ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </button>
+              <button onclick="deletePhoto({{ $photo->id }})" class="aph-del">×</button>
+            </div>
+          </div>
+        @endforeach
+      </div>
+    </div>
+  @endforeach
+
+  </div>{{-- #photo-grid --}}
 
   {{-- Floating selection bar --}}
   <div id="sel-bar">
@@ -197,11 +229,28 @@
 
 @push('scripts')
 <style>
-.alb-card { border-radius:6px; overflow:hidden; background:#E2E8F0; box-shadow:0 1px 4px rgba(0,0,0,0.07); transition:outline-color 0.15s; }
-.aph-del { font-size:10px; padding:2px 8px; border:1px solid #F5C6CB; border-radius:4px; color:#C0392B; background:#FDF2F2; cursor:pointer; }
-.aph-cover { padding:3px 5px; border:1px solid #DDE2E8; border-radius:4px; color:#9AA9B8; background:#fff; cursor:pointer; display:flex; align-items:center; }
+/* ── Cards ───────────────────────────────────────────── */
+.alb-card { border-radius:6px; overflow:hidden; background:#E2E8F0; box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+.aph-footer { padding:5px 7px; background:#fff; border-top:1px solid #EDF0F4; display:flex; align-items:center; justify-content:space-between; }
+.aph-del { font-size:13px; line-height:1; padding:1px 7px; border:1px solid #F5C6CB; border-radius:4px; color:#C0392B; background:#FDF2F2; cursor:pointer; }
+.aph-cover { padding:3px 4px; border:1px solid #DDE2E8; border-radius:4px; color:#9AA9B8; background:#fff; cursor:pointer; display:flex; align-items:center; }
 .aph-cover:hover { border-color:#F0C040; color:#D4A012; }
 .aph-cover-active { border-color:#F0C040 !important; color:#D4A012 !important; background:#FFFBEE !important; }
+
+/* ── Group sections ──────────────────────────────────── */
+.grp-section { background:#FAFBFC; border-radius:8px; padding:12px 14px 14px; }
+.grp-section-hd { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.grp-sel-all { font-size:10px; padding:2px 10px; border:1px solid #DDE2E8; border-radius:4px; background:#fff; color:#6B7E96; cursor:pointer; margin-left:auto; }
+.body-select .grp-sel-all { display:block; }
+.grp-photos { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
+
+/* ── Ungrouped section ───────────────────────────────── */
+.section-divider { display:flex; align-items:center; gap:10px; margin:24px 0 14px; }
+.section-divider span { font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:#9AA9B8; white-space:nowrap; }
+.section-divider::after { content:''; flex:1; height:1px; background:#EDF0F4; }
+.ungrouped-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; }
+
+/* ── Upload queue ────────────────────────────────────── */
 #drop-zone { cursor:default; transition:border-color 0.2s,background 0.2s; }
 #drop-zone.dragging { border-color:#6EA8D0 !important; background:#F0F7FD !important; }
 .q-item { display:grid; grid-template-columns:1fr auto; column-gap:10px; row-gap:4px; align-items:center; }
@@ -214,43 +263,35 @@
 .q-fill.done { background:#5B9E6E; }
 
 /* ── Selection mode ──────────────────────────────────── */
-.sel-overlay {
-  display:none; position:absolute; inset:0; z-index:3;
-  cursor:pointer; transition:background 0.15s;
-}
+.sel-overlay { display:none; position:absolute; inset:0; z-index:3; cursor:pointer; transition:background 0.15s; }
 .body-select .sel-overlay { display:block; }
 .alb-card.selected .sel-overlay { background:rgba(42,100,150,0.18); }
 .alb-card.selected { outline:2px solid #2A6496 !important; outline-offset:-2px; }
-
+.sel-cover-pill {
+  position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+  font-size:9px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+  background:#2A6496; color:#fff;
+  padding:2px 8px; border-radius:10px; white-space:nowrap; pointer-events:none;
+}
 .sel-check {
-  position:absolute; top:7px; left:7px;
-  width:20px; height:20px; border-radius:5px;
+  position:absolute; top:6px; left:6px;
+  width:18px; height:18px; border-radius:4px;
   background:#fff; border:1.5px solid #C8D3DE;
   display:flex; align-items:center; justify-content:center;
   pointer-events:none; transition:background 0.15s, border-color 0.15s;
 }
 .alb-card.selected .sel-check { background:#2A6496; border-color:#2A6496; }
-.sel-check svg { width:11px; height:11px; stroke:white; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; display:none; }
+.sel-check svg { width:10px; height:10px; stroke:white; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; display:none; }
 .alb-card.selected .sel-check svg { display:block; }
 
-/* Group badge */
-.grp-badge {
-  position:absolute; top:7px; right:7px; z-index:2;
-  font-size:9px; font-weight:700; letter-spacing:0.04em;
-  padding:2px 7px; border-radius:10px; pointer-events:none;
-  cursor:pointer;
-}
-.body-select .grp-badge { pointer-events:auto; cursor:pointer; }
-
-/* Floating bar */
+/* ── Floating bar ────────────────────────────────────── */
 #sel-bar {
   position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
   background:#1A2332; color:#D4E0EC;
   border-radius:10px; padding:10px 16px;
   display:none; align-items:center; gap:8px;
   box-shadow:0 4px 24px rgba(0,0,0,0.22);
-  font-size:12px; font-weight:400; z-index:200;
-  white-space:nowrap;
+  font-size:12px; font-weight:400; z-index:200; white-space:nowrap;
 }
 #sel-bar.visible { display:flex; }
 #sel-bar button { font-size:11px; padding:5px 14px; border-radius:6px; cursor:pointer; font-family:inherit; font-weight:500; border:none; }
@@ -499,6 +540,7 @@ function toggleSelect(id, groupKey) {
     card.classList.add('selected');
   }
   updateSelBar();
+  updateCoverMark();
 }
 
 function updateSelBar() {
@@ -506,20 +548,34 @@ function updateSelBar() {
   const count = selectedIds.size;
   document.getElementById('sel-count').textContent = count + ' selected';
   bar.classList.toggle('visible', count > 0);
-
-  // Group button enabled only if ≥2 selected
   document.querySelector('.btn-sel-group').disabled = count < 2;
+}
+
+function updateCoverMark() {
+  // Clear all existing cover marks
+  document.querySelectorAll('.sel-cover-pill').forEach(el => el.remove());
+  if (selectedIds.size < 2) return;
+  // Mark the first selected card
+  const firstId = Array.from(selectedIds)[0];
+  const card = document.getElementById('aph-' + firstId);
+  if (!card) return;
+  const pill = document.createElement('span');
+  pill.className = 'sel-cover-pill';
+  pill.textContent = 'Cover';
+  card.querySelector('.sel-overlay').appendChild(pill);
 }
 
 function clearSelection() {
   selectedIds.forEach(id => document.getElementById('aph-' + id)?.classList.remove('selected'));
   selectedIds.clear();
   updateSelBar();
+  updateCoverMark();
 }
 
 async function groupSelected() {
   if (selectedIds.size < 2) return;
-  const res = await postJson(BASE + '/photos/group', { ids: Array.from(selectedIds) });
+  const ids = Array.from(selectedIds);
+  const res = await postJson(BASE + '/photos/group', { ids, cover_id: ids[0] });
   if (res.ok) location.reload();
 }
 
@@ -540,20 +596,16 @@ async function deleteSelected() {
   }
 }
 
-// Clicking a group badge in select mode selects all photos in that group
-document.querySelectorAll('.grp-badge[data-group-key]').forEach(el => {
-  el.addEventListener('click', function(e) {
-    if (!selectMode) return;
-    e.stopPropagation();
-    const key = this.dataset.groupKey;
-    document.querySelectorAll('.alb-card[data-group-key="' + key + '"]').forEach(card => {
-      const id = parseInt(card.dataset.id);
-      selectedIds.add(id);
-      card.classList.add('selected');
-    });
-    updateSelBar();
+function selectGroup(groupKey) {
+  if (!selectMode) toggleSelectMode();
+  document.querySelectorAll('.alb-card[data-group-key="' + groupKey + '"]').forEach(card => {
+    const id = parseInt(card.dataset.id);
+    selectedIds.add(id);
+    card.classList.add('selected');
   });
-});
+  updateSelBar();
+  updateCoverMark();
+}
 
 function postJson(url, data) {
   return fetch(url, {

@@ -276,9 +276,14 @@ class AlbumController extends Controller
 
     public function groupPhotos(Request $request, Album $album)
     {
-        $ids = $request->validate(['ids' => 'required|array|min:2', 'ids.*' => 'integer'])['ids'];
-        $key = (string) Str::uuid();
-        $album->photos()->whereIn('id', $ids)->update(['group_key' => $key]);
+        $data     = $request->validate(['ids' => 'required|array|min:2', 'ids.*' => 'integer', 'cover_id' => 'nullable|integer']);
+        $ids      = $data['ids'];
+        $coverId  = $data['cover_id'] ?? $ids[0];
+        $key      = (string) Str::uuid();
+
+        $album->photos()->whereIn('id', $ids)->update(['group_key' => $key, 'is_group_cover' => false]);
+        $album->photos()->where('id', $coverId)->update(['is_group_cover' => true]);
+
         return response()->json(['ok' => true]);
     }
 
