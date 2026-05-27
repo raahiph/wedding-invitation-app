@@ -64,7 +64,7 @@ body::before {
   font-size:clamp(40px,8vw,64px); line-height:1;
   color:white;
   text-shadow:0 2px 24px rgba(0,0,0,0.4);
-  margin-bottom:16px; margin-top:40px;
+  margin-bottom:28px; margin-top:40px;
 }
 .hd-album {
   display:inline-block;
@@ -78,6 +78,17 @@ body::before {
   text-transform:uppercase; color:rgba(154,169,184,0.45);
   display:block;
 }
+.hd-share {
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:'Montserrat',sans-serif; font-size:10px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase;
+  color:rgba(154,169,184,0.55);
+  background:transparent; border:1px solid rgba(154,169,184,0.18);
+  padding:5px 14px; border-radius:20px;
+  cursor:pointer; margin-top:16px;
+  transition:color 0.2s, border-color 0.2s, background 0.2s;
+}
+.hd-share:hover { color:rgba(239,229,210,0.8); border-color:rgba(154,169,184,0.38); background:rgba(255,255,255,0.04); }
+.hd-share.copied { color:rgba(91,158,110,0.9); border-color:rgba(91,158,110,0.35); }
 
 /* ── Body ───────────────────────────────────────────── */
 .body { padding:36px 32px 80px; max-width:1400px; margin:0 auto; }
@@ -254,6 +265,10 @@ body::before {
   <h1 class="hd-names">{{ $wedding['groom'] }} &amp;&nbsp; {{ $wedding['bride'] }}</h1>
   <span class="hd-album">{{ $album->name }}</span>
   <span class="hd-sub">{{ $wedding['date'] }}@if($totalPhotos > 0) &nbsp;·&nbsp; {{ $totalPhotos }} photo{{ $totalPhotos === 1 ? '' : 's' }}@endif</span>
+  <button class="hd-share" id="share-btn" onclick="shareAlbum()" title="Share album">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    <span id="share-label">Share</span>
+  </button>
 </header>
 
 <div class="body">
@@ -330,6 +345,40 @@ $groupsData = $groups->map(fn($g) => $g->map(fn($p) => [
 ])->values()->all())->all();
 @endphp
 <script>
+const ALBUM_URL = '{{ $album->shareUrl() }}';
+const ALBUM_NAME = @json($album->name);
+
+function shareAlbum() {
+  var btn   = document.getElementById('share-btn');
+  var label = document.getElementById('share-label');
+
+  function showCopied() {
+    label.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() { label.textContent = 'Share'; btn.classList.remove('copied'); }, 2400);
+  }
+
+  function copyViaTextarea() {
+    var ta = document.createElement('textarea');
+    ta.value = ALBUM_URL;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); showCopied(); } catch(e) {}
+    document.body.removeChild(ta);
+  }
+
+  if (navigator.share) {
+    navigator.share({ title: ALBUM_NAME, url: ALBUM_URL }).catch(function(){});
+    return;
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ALBUM_URL).then(showCopied).catch(copyViaTextarea);
+  } else {
+    copyViaTextarea();
+  }
+}
+
 const GROUPS = @json($groupsData);
 
 // Indices of solo groups (ungrouped single photos) for cross-navigation
