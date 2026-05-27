@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('dropbox_path')->nullable();
             $table->string('group_key', 36)->nullable()->index();
             $table->boolean('is_group_cover')->default(false);
+            $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
         });
     }

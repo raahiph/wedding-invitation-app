@@ -21,7 +21,7 @@ class AlbumController extends Controller
             return redirect()->guest(route('gate.show'));
         }
 
-        $photos = $album->photos()->oldest()->get();
+        $photos = $album->photos()->orderBy('sort_order')->orderBy('id')->get();
 
         // Manual group_key wins; fall back to photobooth filename pattern.
         $groups = $photos->groupBy(function ($photo) {
@@ -67,7 +67,7 @@ class AlbumController extends Controller
 
     public function manage(Album $album)
     {
-        $photos = $album->photos()->latest()->get();
+        $photos = $album->photos()->orderBy('sort_order')->orderBy('id')->get();
         return view('admin.album-manage', compact('album', 'photos'));
     }
 
@@ -276,13 +276,24 @@ class AlbumController extends Controller
 
     public function groupPhotos(Request $request, Album $album)
     {
-        $data     = $request->validate(['ids' => 'required|array|min:2', 'ids.*' => 'integer', 'cover_id' => 'nullable|integer']);
-        $ids      = $data['ids'];
-        $coverId  = $data['cover_id'] ?? $ids[0];
-        $key      = (string) Str::uuid();
+        $ids     = $request->validate(['ids' => 'required|array|min:2', 'ids.*' => 'integer'])['ids'];
+        $key     = (string) Str::uuid();
+        $photos  = $album->photos()->whereIn('id', $ids)->get()->keyBy('id');
 
-        $album->photos()->whereIn('id', $ids)->update(['group_key' => $key, 'is_group_cover' => false]);
-        $album->photos()->where('id', $coverId)->update(['is_group_cover' => true]);
+        // Preserve selection order; push MP4s to end
+        $ordered = collect($ids)
+            ->map(fn($id) => $photos->get($id))
+            ->filter()
+            ->sortBy(fn($p) => $p->type === 'video' ? 1 : 0, SORT_REGULAR, false)
+            ->values();
+
+        foreach ($ordered as $i => $photo) {
+            $photo->update([
+                'group_key'      => $key,
+                'sort_order'     => $i,
+                'is_group_cover' => $i === 0,   // first non-video (or first overall) is cover
+            ]);
+        }
 
         return response()->json(['ok' => true]);
     }

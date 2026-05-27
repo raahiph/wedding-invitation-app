@@ -574,8 +574,7 @@ function clearSelection() {
 
 async function groupSelected() {
   if (selectedIds.size < 2) return;
-  const ids = Array.from(selectedIds);
-  const res = await postJson(BASE + '/photos/group', { ids, cover_id: ids[0] });
+  const res = await postJson(BASE + '/photos/group', { ids: Array.from(selectedIds) });
   if (res.ok) location.reload();
 }
 

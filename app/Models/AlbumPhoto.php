@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AlbumPhoto extends Model
 {
-    protected $fillable = ['album_id', 'thumb_path', 'type', 'dropbox_path', 'group_key', 'is_group_cover'];
+    protected $fillable = ['album_id', 'thumb_path', 'type', 'dropbox_path', 'group_key', 'is_group_cover', 'sort_order'];
 
     protected $casts = ['is_group_cover' => 'boolean'];
 
