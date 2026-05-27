@@ -12,6 +12,9 @@
 <meta property="og:title" content="{{ $album->name }} — {{ $wedding['groom'] }} &amp; {{ $wedding['bride'] }}">
 <meta property="og:type" content="website">
 <meta property="og:image" content="{{ config('app.url') }}/assets/img/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
 <link rel="icon" type="image/png" sizes="16x16" href="{{ config('app.url') }}/assets/img/16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="{{ config('app.url') }}/assets/img/32x32.png">
 <link rel="icon" type="image/png" sizes="180x180" href="{{ config('app.url') }}/assets/img/180x180.png">
