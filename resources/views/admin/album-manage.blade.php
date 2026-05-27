@@ -140,7 +140,7 @@
   @if($ungrouped->isNotEmpty())
     <div class="ungrouped-grid">
       @foreach($ungrouped as $photo)
-        <div class="alb-card" id="aph-{{ $photo->id }}" data-id="{{ $photo->id }}" data-group-key="">
+        <div class="alb-card{{ $photo->hidden ? ' is-hidden' : '' }}" id="aph-{{ $photo->id }}" data-id="{{ $photo->id }}" data-group-key="" data-hidden="{{ $photo->hidden ? 'true' : 'false' }}">
           <div style="position:relative;aspect-ratio:1/1;overflow:hidden;background:#D1D9E0;">
             <div class="sel-overlay" onclick="toggleSelect({{ $photo->id }}, '')">
               <div class="sel-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -156,9 +156,18 @@
                 <span style="position:absolute;bottom:5px;left:5px;font-size:9px;font-weight:600;background:rgba(0,0,0,0.55);color:#fff;padding:1px 5px;border-radius:3px;">GIF</span>
               @endif
             @endif
+            @if($photo->hidden)
+              <span class="hidden-badge">Hidden</span>
+            @endif
           </div>
           <div class="aph-footer">
-            <span style="font-size:10px;color:#C8D3DE;">—</span>
+            <button onclick="toggleHidden({{ $photo->id }}, this)" class="aph-eye{{ $photo->hidden ? ' aph-eye-off' : '' }}" title="{{ $photo->hidden ? 'Show photo' : 'Hide photo' }}">
+              @if($photo->hidden)
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              @else
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              @endif
+            </button>
             <button onclick="deletePhoto({{ $photo->id }})" class="aph-del">×</button>
           </div>
         </div>
@@ -175,16 +184,20 @@
   @foreach($grouped as $groupKey => $groupPhotos)
     @php $gn = $groupedMap[$groupKey]; $hue = $groupHues[($gn - 1) % count($groupHues)]; @endphp
     <div class="grp-section" style="border-left:3px solid hsl({{ $hue }},55%,58%);margin-bottom:20px;">
+      @php $groupAllHidden = $groupPhotos->every(fn($p) => $p->hidden); @endphp
       <div class="grp-section-hd">
         <span style="font-size:11px;font-weight:600;color:hsl({{ $hue }},45%,35%);letter-spacing:0.04em;">
           Group {{ $gn }}
         </span>
         <span style="font-size:10px;color:#9AA9B8;">{{ $groupPhotos->count() }} photo{{ $groupPhotos->count() === 1 ? '' : 's' }}</span>
+        <button class="grp-hide-all{{ $groupAllHidden ? ' grp-hide-all-on' : '' }}" data-group-key="{{ $groupKey }}" onclick="toggleGroupHidden('{{ $groupKey }}', this)">
+          {{ $groupAllHidden ? 'Show group' : 'Hide group' }}
+        </button>
         <button class="grp-sel-all" data-group-key="{{ $groupKey }}" onclick="selectGroup('{{ $groupKey }}')">Select all</button>
       </div>
       <div class="grp-photos">
         @foreach($groupPhotos as $photo)
-          <div class="alb-card" id="aph-{{ $photo->id }}" data-id="{{ $photo->id }}" data-group-key="{{ $groupKey }}">
+          <div class="alb-card{{ $photo->hidden ? ' is-hidden' : '' }}" id="aph-{{ $photo->id }}" data-id="{{ $photo->id }}" data-group-key="{{ $groupKey }}" data-hidden="{{ $photo->hidden ? 'true' : 'false' }}">
             <div style="position:relative;aspect-ratio:1/1;overflow:hidden;background:#D1D9E0;">
               <div class="sel-overlay" onclick="toggleSelect({{ $photo->id }}, '{{ $groupKey }}')">
                 <div class="sel-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -203,10 +216,20 @@
               @if($photo->is_group_cover)
                 <span style="position:absolute;top:5px;right:5px;font-size:9px;background:rgba(212,160,18,0.9);color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">Cover</span>
               @endif
+              @if($photo->hidden)
+                <span class="hidden-badge">Hidden</span>
+              @endif
             </div>
             <div class="aph-footer">
               <button onclick="setGroupCover({{ $photo->id }}, this)" class="aph-cover{{ $photo->is_group_cover ? ' aph-cover-active' : '' }}" title="Set as group cover">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="{{ $photo->is_group_cover ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </button>
+              <button onclick="toggleHidden({{ $photo->id }}, this)" class="aph-eye{{ $photo->hidden ? ' aph-eye-off' : '' }}" title="{{ $photo->hidden ? 'Show photo' : 'Hide photo' }}">
+                @if($photo->hidden)
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                @else
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                @endif
               </button>
               <button onclick="deletePhoto({{ $photo->id }})" class="aph-del">×</button>
             </div>
@@ -236,6 +259,13 @@
 .aph-cover { padding:3px 4px; border:1px solid #DDE2E8; border-radius:4px; color:#9AA9B8; background:#fff; cursor:pointer; display:flex; align-items:center; }
 .aph-cover:hover { border-color:#F0C040; color:#D4A012; }
 .aph-cover-active { border-color:#F0C040 !important; color:#D4A012 !important; background:#FFFBEE !important; }
+.aph-eye { padding:3px 4px; border:1px solid #DDE2E8; border-radius:4px; color:#9AA9B8; background:#fff; cursor:pointer; display:flex; align-items:center; }
+.aph-eye:hover { border-color:#9AA9B8; color:#6B7E96; }
+.aph-eye-off { border-color:#FBCFE8 !important; color:#DB2777 !important; background:#FDF2F8 !important; }
+.is-hidden { opacity:0.4; }
+.hidden-badge { position:absolute; bottom:5px; right:5px; font-size:9px; font-weight:600; background:rgba(219,39,119,0.85); color:#fff; padding:1px 6px; border-radius:3px; pointer-events:none; }
+.grp-hide-all { font-size:10px; padding:2px 10px; border:1px solid #DDE2E8; border-radius:4px; background:#fff; color:#6B7E96; cursor:pointer; }
+.grp-hide-all-on { border-color:#FBCFE8 !important; color:#DB2777 !important; background:#FDF2F8 !important; }
 
 /* ── Group sections ──────────────────────────────────── */
 .grp-section { background:#FAFBFC; border-radius:8px; padding:12px 14px 14px; }
@@ -612,6 +642,71 @@ function postJson(url, data) {
     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
     body: JSON.stringify(data),
   }).then(r => r.json());
+}
+
+// ── Toggle hidden on a single photo ──────────────────────────────────────────
+function toggleHidden(photoId, btn) {
+  fetch(BASE + '/photos/' + photoId + '/toggle-hidden', { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' } })
+    .then(r => r.json())
+    .then(res => {
+      if (!res.ok) return;
+      const card = document.getElementById('aph-' + photoId);
+      card.dataset.hidden = res.hidden ? 'true' : 'false';
+      card.classList.toggle('is-hidden', res.hidden);
+      // Swap the badge
+      let badge = card.querySelector('.hidden-badge');
+      if (res.hidden) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'hidden-badge';
+          badge.textContent = 'Hidden';
+          card.querySelector('[style*="aspect-ratio"]').appendChild(badge);
+        }
+      } else {
+        badge?.remove();
+      }
+      // Swap the eye icon SVG
+      btn.classList.toggle('aph-eye-off', res.hidden);
+      btn.title = res.hidden ? 'Show photo' : 'Hide photo';
+      btn.innerHTML = res.hidden
+        ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+        : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    });
+}
+
+// ── Toggle hidden on all photos in a group ────────────────────────────────────
+function toggleGroupHidden(groupKey, btn) {
+  const hide = !btn.classList.contains('grp-hide-all-on');
+  postJson(BASE + '/photos/group-hidden', { group_key: groupKey, hidden: hide })
+    .then(res => {
+      if (!res.ok) return;
+      btn.classList.toggle('grp-hide-all-on', hide);
+      btn.textContent = hide ? 'Show group' : 'Hide group';
+      document.querySelectorAll('.alb-card[data-group-key="' + groupKey + '"]').forEach(card => {
+        const photoId = parseInt(card.dataset.id);
+        card.dataset.hidden = hide ? 'true' : 'false';
+        card.classList.toggle('is-hidden', hide);
+        let badge = card.querySelector('.hidden-badge');
+        if (hide) {
+          if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'hidden-badge';
+            badge.textContent = 'Hidden';
+            card.querySelector('[style*="aspect-ratio"]').appendChild(badge);
+          }
+        } else {
+          badge?.remove();
+        }
+        const eyeBtn = card.querySelector('.aph-eye');
+        if (eyeBtn) {
+          eyeBtn.classList.toggle('aph-eye-off', hide);
+          eyeBtn.title = hide ? 'Show photo' : 'Hide photo';
+          eyeBtn.innerHTML = hide
+            ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+            : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        }
+      });
+    });
 }
 
 // ── Copy share link ───────────────────────────────────────────────────────────

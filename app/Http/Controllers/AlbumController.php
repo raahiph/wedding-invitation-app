@@ -21,7 +21,7 @@ class AlbumController extends Controller
             return redirect()->guest(route('gate.show'));
         }
 
-        $photos = $album->photos()->orderBy('sort_order')->orderBy('id')->get();
+        $photos = $album->photos()->where('hidden', false)->orderBy('sort_order')->orderBy('id')->get();
 
         // Manual group_key wins; fall back to photobooth filename pattern.
         $groups = $photos->groupBy(function ($photo) {
@@ -338,6 +338,25 @@ class AlbumController extends Controller
         $photo->update(['is_group_cover' => true]);
 
         return response()->json(['ok' => true]);
+    }
+
+    // ── Admin: toggle hidden state on a photo ────────────────────────────────
+
+    public function toggleHidden(Album $album, AlbumPhoto $photo)
+    {
+        abort_if($photo->album_id !== $album->id, 404);
+        $photo->update(['hidden' => !$photo->hidden]);
+        return response()->json(['ok' => true, 'hidden' => $photo->hidden]);
+    }
+
+    // ── Admin: toggle hidden state on all photos in a group ──────────────────
+
+    public function toggleGroupHidden(Request $request, Album $album)
+    {
+        $key    = $request->validate(['group_key' => 'required|string'])['group_key'];
+        $hidden = $request->boolean('hidden');
+        $album->photos()->where('group_key', $key)->update(['hidden' => $hidden]);
+        return response()->json(['ok' => true, 'hidden' => $hidden]);
     }
 
     // ── Admin: toggle album gate (requires mobile verification) ──────────────
